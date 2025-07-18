@@ -14,6 +14,10 @@ firebase.initializeApp(firebaseConfig);
 // Use Firestore (if needed)
 const db = firebase.firestore();
 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js";
+
+
 // Game elements
 const bird = document.getElementById("bird");
 const pipeTop = document.getElementById("pipe-top");
