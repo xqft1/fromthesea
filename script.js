@@ -1,34 +1,15 @@
-// Firebase Configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Replace with your own config from Firebase Console
 const firebaseConfig = {
   apiKey: "AIzaSyBhyDiExECoc6J1TqJu6XeQCxgySMP7K5Q",
   authDomain: "fromthesea-c967a.firebaseapp.com",
-  databaseURL: "https://fromthesea-c967a-default-rtdb.firebaseio.com",
   projectId: "fromthesea-c967a",
   storageBucket: "fromthesea-c967a.firebasestorage.app",
   messagingSenderId: "921773077324",
   appId: "1:921773077324:web:d9e58bc48e9de742ff95e9",
-  measurementId: "G-067PNVDQ5V"
 };
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const leaderboardRef = db.ref("leaderboard");
-
-firebase.auth().signInAnonymously().catch((error) => {
-  console.error("Anonymous auth error:", error);
-});
-
-FileInputStream serviceAccount =
-new FileInputStream("path/to/serviceAccountKey.json");
-
-FirebaseOptions options = new FirebaseOptions.Builder()
-  .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-  .setDatabaseUrl("https://fromthesea-c967a-default-rtdb.firebaseio.com")
-  .build();
-
-FirebaseApp.initializeApp(options);
 
 // Game elements
 const bird = document.getElementById("bird");
