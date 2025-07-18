@@ -1,7 +1,6 @@
 // Wait for the DOM to be fully loaded
 document.addEventListener("DOMContentLoaded", () => {
-  
-// Replace with your own config from Firebase Console
+  // Replace with your own config from Firebase Console
   const firebaseConfig = {
     apiKey: "AIzaSyBhyDiExECoc6J1TqJu6XeQCxgySMP7K5Q",
     authDomain: "fromthesea-c967a.firebaseapp.com",
@@ -9,10 +8,10 @@ document.addEventListener("DOMContentLoaded", () => {
     projectId: "fromthesea-c967a",
     storageBucket: "fromthesea-c967a.appspot.com",
     messagingSenderId: "921773077324",
-  appId: "1:921773077324:web:d9e58bc48e9de742ff95e9",
+    appId: "1:921773077324:web:d9e58bc48e9de742ff95e9",
   };
 
-// Initialize Firebase
+  // Initialize Firebase
   firebase.initializeApp(firebaseConfig);
   const database = firebase.database();
   const leaderboardRef = database.ref("leaderboard");
@@ -48,6 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let username = '';
   let gameInterval;
   let gameStarted = false;
+  let isGameOver = false; // New flag to prevent duplicate gameOver calls
 
   // Audio
   const audio = new Audio('https://soundimage.org/wp-content/uploads/2014/02/Blazing-Stars.mp3');
@@ -80,6 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Save score
   function saveScore(name, score) {
+    console.log(`Saving score for ${name}: ${score}`); // Debug log
     const newScoreRef = leaderboardRef.push();
     newScoreRef.set({
       name: name,
@@ -92,6 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Game loop
   function updateGame() {
+    if (isGameOver) return; // Stop updates if game is over
     velocity += gravity;
     birdY += velocity;
     bird.style.top = birdY + "px";
@@ -128,10 +130,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function gameOver() {
+    if (isGameOver) return; // Prevent multiple calls
+    isGameOver = true;
+    console.log("Game over triggered"); // Debug log
     clearInterval(gameInterval);
     saveScore(username, score);
     alert(`Game Over, ${username}! Your Score: ${score}`);
-    location.reload();
+    setTimeout(() => location.reload(), 100); // Delay reload
   }
 
   function flap() {
@@ -144,10 +149,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Event listeners
-  document.addEventListener("keydown", (e) => {
+  // Remove existing listeners to prevent duplicates
+  document.removeEventListener("keydown", flapHandler);
+  document.removeEventListener("click", flap);
+  function flapHandler(e) {
     if (e.code === "Space") flap();
-  });
-
+  }
+  document.addEventListener("keydown", flapHandler);
   document.addEventListener("click", flap);
 
   startButton.addEventListener("click", () => {
@@ -165,7 +173,12 @@ document.addEventListener("DOMContentLoaded", () => {
     bird.style.top = birdY + "px";
     velocity = 0;
     score = 0;
+    isGameOver = false; // Reset flag
   });
+
+  // Start by loading leaderboard
+  loadLeaderboard();
+});
 
   // Start by loading leaderboard
   loadLeaderboard();
