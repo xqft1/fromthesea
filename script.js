@@ -106,27 +106,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Check for collision
   function checkCollision() {
+    if (isGameOver) return { collision: false, details: {} }; // Prevent checks during game over
     const birdRect = bird.getBoundingClientRect();
     const topRect = pipeTop.getBoundingClientRect();
     const bottomRect = pipeBottom.getBoundingClientRect();
     const containerRect = gameContainer.getBoundingClientRect();
 
-    const collision = (
-      birdRect.bottom > containerRect.bottom ||
-      birdRect.top < containerRect.top ||
-      (birdRect.right > topRect.left &&
-       birdRect.left < topRect.right &&
-       (birdRect.top < topRect.bottom || birdRect.bottom > bottomRect.top))
-    );
+    const collisionDetails = {
+      bottom: birdRect.bottom > containerRect.bottom,
+      top: birdRect.top < containerRect.top,
+      pipe: birdRect.right > topRect.left &&
+            birdRect.left < topRect.right &&
+            (birdRect.top < topRect.bottom || birdRect.bottom > bottomRect.top)
+    };
+    const collision = collisionDetails.bottom || collisionDetails.top || collisionDetails.pipe;
+
     if (collision) {
-      console.log("Collision detected:", {
-        bottom: birdRect.bottom > containerRect.bottom,
-        top: birdRect.top < containerRect.top,
-        pipe: birdRect.right > topRect.left && birdRect.left < topRect.right &&
-              (birdRect.top < topRect.bottom || birdRect.bottom > bottomRect.top)
-      });
+      console.log("Collision detected:", collisionDetails);
     }
-    return collision;
+    return { collision, details: collisionDetails };
   }
 
   // Game loop
@@ -152,9 +150,11 @@ document.addEventListener("DOMContentLoaded", () => {
     pipeTop.style.left = pipeX + "px";
     pipeBottom.style.left = pipeX + "px";
 
-    if (checkCollision()) {
+    const { collision, details } = checkCollision();
+    if (collision) {
+      console.log("Stopping game loop due to collision");
+      clearInterval(gameInterval); // Stop loop before gameOver
       gameOver();
-      clearInterval(gameInterval); // Stop loop immediately
     }
 
     scoreDisplay.innerText = score;
@@ -170,16 +170,20 @@ document.addEventListener("DOMContentLoaded", () => {
     // Remove event listeners to prevent further input
     document.removeEventListener("keydown", flapHandler);
     document.removeEventListener("click", flap);
+    audio.pause(); // Stop audio
     saveScore(username, score);
     alert(`Game Over, ${username}! Your Score: ${score}`);
     setTimeout(() => {
       console.log("Reloading page");
       location.reload();
-    }, 500); // Increased delay to ensure save completes
+    }, 1000); // Increased delay
   }
 
   function flap() {
-    if (isGameOver) return; // Ignore flaps during game over
+    if (isGameOver) {
+      console.log("Flap ignored during game over");
+      return;
+    }
     velocity = jump;
   }
 
