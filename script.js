@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let gameInterval;
   let gameStarted = false;
   let isGameOver = false;
-  let isSavingScore = false; // New flag to prevent multiple saves
+  let isSavingScore = false;
 
   // Audio
   const audio = new Audio('https://soundimage.org/wp-content/uploads/2014/02/Blazing-Stars.mp3');
@@ -99,7 +99,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }).catch((error) => {
       console.error("Error saving score:", error);
     }).finally(() => {
-      isSavingScore = false; // Reset after save completes
+      console.log("Score save completed");
+      isSavingScore = false;
     });
   }
 
@@ -110,13 +111,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const bottomRect = pipeBottom.getBoundingClientRect();
     const containerRect = gameContainer.getBoundingClientRect();
 
-    return (
+    const collision = (
       birdRect.bottom > containerRect.bottom ||
       birdRect.top < containerRect.top ||
       (birdRect.right > topRect.left &&
        birdRect.left < topRect.right &&
        (birdRect.top < topRect.bottom || birdRect.bottom > bottomRect.top))
     );
+    if (collision) {
+      console.log("Collision detected:", {
+        bottom: birdRect.bottom > containerRect.bottom,
+        top: birdRect.top < containerRect.top,
+        pipe: birdRect.right > topRect.left && birdRect.left < topRect.right &&
+              (birdRect.top < topRect.bottom || birdRect.bottom > bottomRect.top)
+      });
+    }
+    return collision;
   }
 
   // Game loop
@@ -143,8 +153,8 @@ document.addEventListener("DOMContentLoaded", () => {
     pipeBottom.style.left = pipeX + "px";
 
     if (checkCollision()) {
-      console.log("Collision detected, triggering game over");
       gameOver();
+      clearInterval(gameInterval); // Stop loop immediately
     }
 
     scoreDisplay.innerText = score;
@@ -157,16 +167,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     isGameOver = true;
     console.log("Game over triggered");
-    clearInterval(gameInterval);
+    // Remove event listeners to prevent further input
+    document.removeEventListener("keydown", flapHandler);
+    document.removeEventListener("click", flap);
     saveScore(username, score);
     alert(`Game Over, ${username}! Your Score: ${score}`);
     setTimeout(() => {
       console.log("Reloading page");
       location.reload();
-    }, 100);
+    }, 500); // Increased delay to ensure save completes
   }
 
   function flap() {
+    if (isGameOver) return; // Ignore flaps during game over
     velocity = jump;
   }
 
@@ -199,8 +212,13 @@ document.addEventListener("DOMContentLoaded", () => {
     velocity = 0;
     score = 0;
     isGameOver = false;
-    isSavingScore = false; // Reset save flag
+    isSavingScore = false;
     gameStarted = true;
+    // Re-attach event listeners
+    document.removeEventListener("keydown", flapHandler);
+    document.removeEventListener("click", flap);
+    document.addEventListener("keydown", flapHandler);
+    document.addEventListener("click", flap);
     audio.play().catch(error => console.log('Autoplay blocked:', error));
     gameInterval = setInterval(updateGame, 20);
     console.log("Game loop started");
