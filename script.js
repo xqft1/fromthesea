@@ -47,7 +47,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let username = '';
   let gameInterval;
   let gameStarted = false;
-  let isGameOver = false; // New flag to prevent duplicate gameOver calls
+  let isGameOver = false; // Flag to prevent multiple gameOver calls
+  let lastSavedScore = null; // Safeguard to prevent duplicate score saves
 
   // Audio
   const audio = new Audio('https://soundimage.org/wp-content/uploads/2014/02/Blazing-Stars.mp3');
@@ -55,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
   audio.volume = 0.5;
 
   // Initialize positions and sizes
-  pipeTop.style.width = pipeWidth + "px";
+  pipeTop.style.width = pipeWidth + " игратьpx";
   pipeBottom.style.width = pipeWidth + "px";
   bird.style.width = birdSize + "px";
   bird.style.height = birdSize + "px";
@@ -80,6 +81,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Save score
   function saveScore(name, score) {
+    const scoreKey = `${name}-${score}-${Date.now()}`; // Unique key for this score
+    if (scoreKey === lastSavedScore) {
+      console.log("Duplicate score save prevented");
+      return;
+    }
+    lastSavedScore = scoreKey;
     console.log(`Saving score for ${name}: ${score}`); // Debug log
     const newScoreRef = leaderboardRef.push();
     newScoreRef.set({
@@ -174,40 +181,9 @@ document.addEventListener("DOMContentLoaded", () => {
     velocity = 0;
     score = 0;
     isGameOver = false; // Reset flag
+    lastSavedScore = null; // Reset safeguard
   });
 
   // Start by loading leaderboard
   loadLeaderboard();
-});
-
-  // Start by loading leaderboard
-  loadLeaderboard();
-});
-
-
-let lastSavedScore = null;
-
-function saveScore(name, score) {
-  const scoreKey = `${name}-${score}-${Date.now()}`;
-  if (scoreKey === lastSavedScore) {
-    console.log("Duplicate score save prevented");
-    return;
-  }
-  lastSavedScore = scoreKey;
-  console.log(`Saving score for ${name}: ${score}`);
-  const newScoreRef = leaderboardRef.push();
-  newScoreRef.set({
-    name: name,
-    score: score,
-    timestamp: firebase.database.ServerValue.TIMESTAMP
-  }).catch((error) => {
-    console.error("Error saving score:", error);
-  });
-}
-
-// Reset in startButton click handler
-startButton.addEventListener("click", () => {
-  // ... existing code ...
-  isGameOver = false;
-  lastSavedScore = null; // Reset
 });
