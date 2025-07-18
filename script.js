@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let gameInterval;
   let gameStarted = false;
   let isGameOver = false;
-  let lastSavedScore = null;
+  let isSavingScore = false; // New flag to prevent multiple saves
 
   // Audio
   const audio = new Audio('https://soundimage.org/wp-content/uploads/2014/02/Blazing-Stars.mp3');
@@ -85,12 +85,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Save score
   function saveScore(name, score) {
-    const scoreKey = `${name}-${score}`; // Simplified key without Date.now()
-    if (scoreKey === lastSavedScore) {
-      console.log("Duplicate score save prevented");
+    if (isSavingScore) {
+      console.log("Score save already in progress, ignoring");
       return;
     }
-    lastSavedScore = scoreKey;
+    isSavingScore = true;
     console.log(`Saving score for ${name}: ${score}`);
     const newScoreRef = leaderboardRef.push();
     newScoreRef.set({
@@ -99,12 +98,33 @@ document.addEventListener("DOMContentLoaded", () => {
       timestamp: firebase.database.ServerValue.TIMESTAMP
     }).catch((error) => {
       console.error("Error saving score:", error);
+    }).finally(() => {
+      isSavingScore = false; // Reset after save completes
     });
+  }
+
+  // Check for collision
+  function checkCollision() {
+    const birdRect = bird.getBoundingClientRect();
+    const topRect = pipeTop.getBoundingClientRect();
+    const bottomRect = pipeBottom.getBoundingClientRect();
+    const containerRect = gameContainer.getBoundingClientRect();
+
+    return (
+      birdRect.bottom > containerRect.bottom ||
+      birdRect.top < containerRect.top ||
+      (birdRect.right > topRect.left &&
+       birdRect.left < topRect.right &&
+       (birdRect.top < topRect.bottom || birdRect.bottom > bottomRect.top))
+    );
   }
 
   // Game loop
   function updateGame() {
-    if (isGameOver) return;
+    if (isGameOver) {
+      console.log("Game loop stopped due to game over");
+      return;
+    }
     velocity += gravity;
     birdY += velocity;
     bird.style.top = birdY + "px";
@@ -122,18 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
     pipeTop.style.left = pipeX + "px";
     pipeBottom.style.left = pipeX + "px";
 
-    const birdRect = bird.getBoundingClientRect();
-    const topRect = pipeTop.getBoundingClientRect();
-    const bottomRect = pipeBottom.getBoundingClientRect();
-    const containerRect = gameContainer.getBoundingClientRect();
-
-    if (
-      birdRect.bottom > containerRect.bottom ||
-      birdRect.top < containerRect.top ||
-      (birdRect.right > topRect.left &&
-       birdRect.left < topRect.right &&
-       (birdRect.top < topRect.bottom || birdRect.bottom > bottomRect.top))
-    ) {
+    if (checkCollision()) {
       console.log("Collision detected, triggering game over");
       gameOver();
     }
@@ -190,7 +199,7 @@ document.addEventListener("DOMContentLoaded", () => {
     velocity = 0;
     score = 0;
     isGameOver = false;
-    lastSavedScore = null;
+    isSavingScore = false; // Reset save flag
     gameStarted = true;
     audio.play().catch(error => console.log('Autoplay blocked:', error));
     gameInterval = setInterval(updateGame, 20);
