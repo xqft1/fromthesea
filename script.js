@@ -2,14 +2,15 @@
 document.addEventListener("DOMContentLoaded", () => {
   
 // Replace with your own config from Firebase Console
-const firebaseConfig = {
-  apiKey: "AIzaSyBhyDiExECoc6J1TqJu6XeQCxgySMP7K5Q",
-  authDomain: "fromthesea-c967a.firebaseapp.com",
-  projectId: "fromthesea-c967a",
-  storageBucket: "fromthesea-c967a.firebasestorage.app",
-  messagingSenderId: "921773077324",
+  const firebaseConfig = {
+    apiKey: "AIzaSyBhyDiExECoc6J1TqJu6XeQCxgySMP7K5Q",
+    authDomain: "fromthesea-c967a.firebaseapp.com",
+    databaseURL: "https://fromthesea-c967a.firebaseio.com",
+    projectId: "fromthesea-c967a",
+    storageBucket: "fromthesea-c967a.appspot.com",
+    messagingSenderId: "921773077324",
   appId: "1:921773077324:web:d9e58bc48e9de742ff95e9",
-};
+  };
 
 // Initialize Firebase
   firebase.initializeApp(firebaseConfig);
