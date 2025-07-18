@@ -11,6 +11,9 @@ const firebaseConfig = {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
+// Use Firestore (if needed)
+const db = firebase.firestore();
+
 // Game elements
 const bird = document.getElementById("bird");
 const pipeTop = document.getElementById("pipe-top");
