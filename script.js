@@ -1,5 +1,6 @@
 // Wait for the DOM to be fully loaded
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("DOM loaded, attaching startButton listener");
   // Replace with your own config from Firebase Console
   const firebaseConfig = {
     apiKey: "AIzaSyBhyDiExECoc6J1TqJu6XeQCxgySMP7K5Q",
@@ -13,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initialize Firebase
   firebase.initializeApp(firebaseConfig);
+  console.log("Firebase initialized");
   const database = firebase.database();
   const leaderboardRef = database.ref("leaderboard");
 
@@ -47,8 +49,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let username = '';
   let gameInterval;
   let gameStarted = false;
-  let isGameOver = false; // Flag to prevent multiple gameOver calls
-  let lastSavedScore = null; // Safeguard to prevent duplicate score saves
+  let isGameOver = false;
+  let lastSavedScore = null;
 
   // Audio
   const audio = new Audio('https://soundimage.org/wp-content/uploads/2014/02/Blazing-Stars.mp3');
@@ -56,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
   audio.volume = 0.5;
 
   // Initialize positions and sizes
-  pipeTop.style.width = pipeWidth + " игратьpx";
+  pipeTop.style.width = pipeWidth + "px";
   pipeBottom.style.width = pipeWidth + "px";
   bird.style.width = birdSize + "px";
   bird.style.height = birdSize + "px";
@@ -65,6 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Load leaderboard
   function loadLeaderboard() {
+    console.log("Loading leaderboard...");
     leaderboardRef.orderByChild("score").limitToLast(5).on("value", (snapshot) => {
       const leaderboard = [];
       snapshot.forEach((child) => {
@@ -74,6 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
       leaderboardEl.innerHTML = leaderboard
         .map(entry => `<li>${entry.name}: ${entry.score}</li>`)
         .join('');
+      console.log("Leaderboard updated:", leaderboard);
     }, (error) => {
       console.error("Error loading leaderboard:", error);
     });
@@ -81,13 +85,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Save score
   function saveScore(name, score) {
-    const scoreKey = `${name}-${score}-${Date.now()}`; // Unique key for this score
+    const scoreKey = `${name}-${score}`; // Simplified key without Date.now()
     if (scoreKey === lastSavedScore) {
       console.log("Duplicate score save prevented");
       return;
     }
     lastSavedScore = scoreKey;
-    console.log(`Saving score for ${name}: ${score}`); // Debug log
+    console.log(`Saving score for ${name}: ${score}`);
     const newScoreRef = leaderboardRef.push();
     newScoreRef.set({
       name: name,
@@ -100,7 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Game loop
   function updateGame() {
-    if (isGameOver) return; // Stop updates if game is over
+    if (isGameOver) return;
     velocity += gravity;
     birdY += velocity;
     bird.style.top = birdY + "px";
@@ -130,6 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
        birdRect.left < topRect.right &&
        (birdRect.top < topRect.bottom || birdRect.bottom > bottomRect.top))
     ) {
+      console.log("Collision detected, triggering game over");
       gameOver();
     }
 
@@ -137,26 +142,26 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function gameOver() {
-    if (isGameOver) return; // Prevent multiple calls
+    if (isGameOver) {
+      console.log("Game over already triggered, ignoring");
+      return;
+    }
     isGameOver = true;
-    console.log("Game over triggered"); // Debug log
+    console.log("Game over triggered");
     clearInterval(gameInterval);
     saveScore(username, score);
     alert(`Game Over, ${username}! Your Score: ${score}`);
-    setTimeout(() => location.reload(), 100); // Delay reload
+    setTimeout(() => {
+      console.log("Reloading page");
+      location.reload();
+    }, 100);
   }
 
   function flap() {
     velocity = jump;
-    if (!gameStarted) {
-      gameStarted = true;
-      audio.play().catch(error => console.log('Autoplay blocked:', error));
-      gameInterval = setInterval(updateGame, 20);
-    }
   }
 
   // Event listeners
-  // Remove existing listeners to prevent duplicates
   document.removeEventListener("keydown", flapHandler);
   document.removeEventListener("click", flap);
   function flapHandler(e) {
@@ -166,11 +171,15 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("click", flap);
 
   startButton.addEventListener("click", () => {
+    console.log("Start button clicked");
     const input = usernameInput.value.trim();
+    console.log("Username input:", input);
     if (input === "") {
+      console.log("Empty username, alerting user");
       alert("Please enter your name!");
       return;
     }
+    console.log("Starting game with username:", input);
     username = input;
     startScreen.style.display = "none";
     gameContainer.style.display = "block";
@@ -180,8 +189,12 @@ document.addEventListener("DOMContentLoaded", () => {
     bird.style.top = birdY + "px";
     velocity = 0;
     score = 0;
-    isGameOver = false; // Reset flag
-    lastSavedScore = null; // Reset safeguard
+    isGameOver = false;
+    lastSavedScore = null;
+    gameStarted = true;
+    audio.play().catch(error => console.log('Autoplay blocked:', error));
+    gameInterval = setInterval(updateGame, 20);
+    console.log("Game loop started");
   });
 
   // Start by loading leaderboard
