@@ -183,3 +183,31 @@ document.addEventListener("DOMContentLoaded", () => {
   // Start by loading leaderboard
   loadLeaderboard();
 });
+
+
+let lastSavedScore = null;
+
+function saveScore(name, score) {
+  const scoreKey = `${name}-${score}-${Date.now()}`;
+  if (scoreKey === lastSavedScore) {
+    console.log("Duplicate score save prevented");
+    return;
+  }
+  lastSavedScore = scoreKey;
+  console.log(`Saving score for ${name}: ${score}`);
+  const newScoreRef = leaderboardRef.push();
+  newScoreRef.set({
+    name: name,
+    score: score,
+    timestamp: firebase.database.ServerValue.TIMESTAMP
+  }).catch((error) => {
+    console.error("Error saving score:", error);
+  });
+}
+
+// Reset in startButton click handler
+startButton.addEventListener("click", () => {
+  // ... existing code ...
+  isGameOver = false;
+  lastSavedScore = null; // Reset
+});
