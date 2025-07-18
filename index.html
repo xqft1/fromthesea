@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FROM THE SEA: THE VIDEO GAME</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Old+Standard+TT&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Start screen -->
+  <div id="start-screen">
+    <h1>FROM THE SEA: THE VIDEO GAME</h1>
+    <input type="text" id="username" placeholder="Enter your name" />
+    <button id="start-button">Start Game</button>
+    <p>Ride Zorath to Elythar with your SPACE button and enter the realm of legends</p>
+
+ <div class="buy-now-container">
+    <a href="https://www.amazon.co.uk/Sea-Rob-Towner-ebook/dp/B0FHWL52ZW" class="buy-now-button">READ ME ON AMAZON KINDLE</a>
+  </div>
+
+
+    <h2>Legends Leaderboard</h2>
+    <ul id="leaderboard"></ul>
+  </div>
+
+  <!-- Game area -->
+  <div id="game-container" style="display: none;">
+    <div id="bird"></div>
+    <div id="pipe-top" class="obstacle"></div>
+    <div id="pipe-bottom" class="obstacle"></div>
+    <div id="score">0</div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

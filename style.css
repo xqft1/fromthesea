@@ -1,0 +1,278 @@
+/* Reset and full screen */
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  font-family: 'Old Standard TT', serif;
+  background-color: black;
+}
+
+h1 {
+  margin-block-start: 0.00em;
+  margin-block-end: 0.00em;
+  padding-top: 40px;
+  padding-bottom: 40px;
+  font-size: 10vmin;
+}
+
+/* Game container with starfield */
+#start-screen {
+  background-image: url('images/gamebg.jpg');
+  background-size: cover; /* Scales image to cover the entire area */
+  background-position: center; /* Centers the image */
+  background-repeat: no-repeat; /* Prevents tiling */
+  min-height: 100vh; /* Ensures body takes full viewport height */
+  margin: 0; /* Removes default margins */
+}
+
+
+/* Game container with starfield */
+#game-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* Bright, randomly scattered drifting stars */
+#game-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 300%;
+  height: 300%;
+  z-index: 0;
+  background-image:
+    radial-gradient(white 1.5px, transparent 1.5px),
+    radial-gradient(#ccf 2px, transparent 2px),
+    radial-gradient(#88f 1px, transparent 1px),
+    radial-gradient(#fff 3px, transparent 3px),
+    radial-gradient(#bbe 1.8px, transparent 1.8px),
+    radial-gradient(#aaf 2.5px, transparent 2.5px);
+  background-size: 
+    350px 400px,
+    500px 600px,
+    300px 350px,
+    200px 300px,
+    450px 500px,
+    600px 700px;
+  background-position: 
+    calc(12% + 75px) calc(18% + 45px),
+    calc(38% + 165px) calc(13% + 85px),
+    calc(72% + 230px) calc(53% + 120px),
+    calc(27% + 95px) calc(68% + 140px),
+    calc(58% + 110px) calc(32% + 70px),
+    calc(22% + 130px) calc(82% + 160px);
+  animation: starDrift 70s linear infinite;
+  opacity: 0.9;
+  filter: brightness(2.2); /* Slightly brighter */
+  pointer-events: none;
+}
+
+/* Twinkling stars layer */
+#game-container::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 300%;
+  height: 300%;
+  z-index: 0;
+  background-image:
+    radial-gradient(white 2px, transparent 2px),
+    radial-gradient(#eef 1.2px, transparent 1.2px),
+    radial-gradient(#aaf 1.5px, transparent 1.5px),
+    radial-gradient(#ddf 1.8px, transparent 1.8px),
+    radial-gradient(#88f 2.2px, transparent 2.2px),
+    radial-gradient(#bbe 1.3px, transparent 1.3px);
+  background-size: 
+    600px 500px,
+    350px 300px,
+    700px 600px,
+    400px 450px,
+    550px 650px,
+    300px 350px;
+  background-position: 
+    calc(17% + 60px) calc(22% + 110px),
+    calc(43% + 140px) calc(11% + 65px),
+    calc(67% + 200px) calc(58% + 130px),
+    calc(31% + 85px) calc(73% + 150px),
+    calc(53% + 120px) calc(37% + 90px),
+    calc(19% + 75px) calc(87% + 170px);
+  animation: twinkle 2s ease-in-out infinite,
+             starDrift 100s linear infinite;
+  opacity: 0.85;
+  filter: brightness(3.0); /* Brighter for game-like effect */
+  pointer-events: none;
+}
+
+@keyframes starDrift {
+  0% {
+    transform: translateX(0) translateY(50px) rotate(0deg);
+  }
+  25% {
+    transform: translateX(-100px) translateY(30px) rotate(5deg);
+  }
+  50% {
+    transform: translateX(-150px) translateY(-20px) rotate(-5deg);
+  }
+  75% {
+    transform: translateX(-200px) translateY(40px) rotate(3deg);
+  }
+  100% {
+    transform: translateX(-250px) translateY(-50px) rotate(0deg);
+  }
+}
+
+@keyframes twinkle {
+  0% { opacity: 0.5; filter: brightness(2.0); transform: scale(0.9); }
+  20% { opacity: 0.8; filter: brightness(3.2); transform: scale(1.1); }
+  40% { opacity: 1.0; filter: brightness(3.5); transform: scale(1.2); }
+  60% { opacity: 0.7; filter: brightness(2.8); transform: scale(1.0); }
+  80% { opacity: 0.9; filter: brightness(3.0); transform: scale(1.15); }
+  100% { opacity: 0.6; filter: brightness(2.5); transform: scale(0.95); }
+}
+
+/* Flappy character - 8-bit purple octopus */
+#bird {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  background-image: url('images/octo-rider.png');
+  background-size: contain; /* Scales image to fit while maintaining aspect ratio */
+  background-repeat: no-repeat;
+  background-position: center;
+  transform: scaleX(-1);
+  z-index: 2;
+}
+
+/* Obstacle - Blue ice shard block */
+.obstacle {
+  position: absolute;
+  width: 8vw;
+  background: repeating-linear-gradient(
+    135deg,
+    #00ccff,
+    #00ccff 2px,
+    #0099cc 2px,
+    #0099cc 4px
+  );
+  border: 2px solid #006699;
+  z-index: 2;
+}
+
+#pipe-top {
+  top: 0;
+}
+
+#pipe-bottom {
+  bottom: 0;
+}
+
+/* Score Display */
+#score {
+  position: absolute;
+  top: 2vh;
+  left: 2vw;
+  font-size: 2.5vw;
+  font-weight: bold;
+  color: #00ffff;
+  text-shadow: 1px 1px 2px #003344;
+  z-index: 2;
+}
+
+/* Start screen and leaderboard */
+#start-screen {
+  text-align: center;
+  color: #00ffff;
+  font-size: 18px;
+  image-rendering: pixelated;
+}
+
+#username {
+  padding: 8px;
+  font-size: 14px;
+  background: #001122;
+  border: 1px solid #00ffff;
+  color: white;
+}
+
+#start-button {
+  padding: 10px 20px;
+  font-size: 14px;
+  background: #00ffff;
+  border: 2px solid #003344;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#leaderboard {
+  list-style: none;
+  padding: 0;
+  max-width: 300px;
+  margin: 10px auto;
+  text-align: left;
+}
+
+#leaderboard li {
+  background: rgba(0, 255, 255, 0.1);
+  margin: 5px 0;
+  padding: 6px;
+  border: 1px dashed #00ffff;
+  font-size: 14px;
+}
+
+
+/* Container for the button */
+    .buy-now-container {
+      position: fixed; /* Forces button to top of viewport */
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      
+      padding: 20px 0;
+      z-index: 1000; /* Ensures button is above other elements */
+      text-align: center;
+    }
+
+    /* Amazon-style Buy Now button */
+    .buy-now-button {
+      display: inline-block;
+      background-color: #FF9900; /* Amazon’s signature orange */
+      color: #FFFFFF; /* White text for contrast */
+      font-size: 12px; /* Large, readable font */
+      font-weight: bold;
+      text-transform: uppercase;
+      padding: 15px 40px; /* Generous padding for size */
+      border-radius: 8px; /* Rounded corners */
+      border: none; /* No border for clean look */
+      cursor: pointer;
+      text-decoration: none; /* For <a> tag */
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Subtle shadow for depth */
+      transition: background-color 0.3s, transform 0.2s; /* Smooth hover effects */
+    }
+
+    /* Hover effect */
+    .buy-now-button:hover {
+      background-color: #F7CA00; /* Slightly lighter orange */
+      transform: scale(1.05); /* Slight zoom on hover */
+    }
+
+    /* Active effect (when clicked) */
+    .buy-now-button:active {
+      background-color: #E68A00; /* Darker orange */
+      transform: scale(0.95); /* Slight shrink on click */
+    }
+
+    /* Ensure button is mobile-friendly */
+    @media (max-width: 600px) {
+      .buy-now-button {
+        font-size: 18px; /* Slightly smaller for mobile */
+        padding: 12px 30px;
+        width: 90%; /* Full-width on mobile */
+        max-width: 300px; /* Prevent overly wide buttons */
+      }
