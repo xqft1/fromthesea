@@ -20,6 +20,16 @@ firebase.auth().signInAnonymously().catch((error) => {
   console.error("Anonymous auth error:", error);
 });
 
+FileInputStream serviceAccount =
+new FileInputStream("path/to/serviceAccountKey.json");
+
+FirebaseOptions options = new FirebaseOptions.Builder()
+  .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+  .setDatabaseUrl("https://fromthesea-c967a-default-rtdb.firebaseio.com")
+  .build();
+
+FirebaseApp.initializeApp(options);
+
 // Game elements
 const bird = document.getElementById("bird");
 const pipeTop = document.getElementById("pipe-top");
