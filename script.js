@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const firebaseConfig = {
     apiKey: "AIzaSyBhyDiExECoc6J1TqJu6XeQCxgySMP7K5Q",
     authDomain: "fromthesea-c967a.firebaseapp.com",
-    databaseURL: "https://fromthesea-c967a.firebaseio.com",
+    databaseURL: "https://fromthesea-c967a-default-rtdb.firebaseio.com/",
     projectId: "fromthesea-c967a",
     storageBucket: "fromthesea-c967a.appspot.com",
     messagingSenderId: "921773077324",
