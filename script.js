@@ -1,8 +1,29 @@
+// Firebase Configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyBhyDiExECoc6J1TqJu6XeQCxgySMP7K5Q",
+  authDomain: "fromthesea-c967a.firebaseapp.com",
+  databaseURL: "https://fromthesea-c967a-default-rtdb.firebaseio.com/",
+  projectId: "fromthesea-c967a",
+  storageBucket: "fromthesea-c967a.firebasestorage.app",
+  messagingSenderId: "921773077324",
+  appId: "1:921773077324:web:d9e58bc48e9de742ff95e9",
+  measurementId: "G-067PNVDQ5V"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const leaderboardRef = db.ref("leaderboard");
+
+firebase.auth().signInAnonymously().catch((error) => {
+  console.error("Anonymous auth error:", error);
+});
+
+// Game elements
 const bird = document.getElementById("bird");
 const pipeTop = document.getElementById("pipe-top");
 const pipeBottom = document.getElementById("pipe-bottom");
 const scoreDisplay = document.getElementById("score");
-
 const startScreen = document.getElementById("start-screen");
 const gameContainer = document.getElementById("game-container");
 const startButton = document.getElementById("start-button");
@@ -28,8 +49,14 @@ let pipeX = gameWidth;
 let score = 0;
 let username = '';
 let gameInterval;
+let gameStarted = false;
 
-// Initialise sizes
+// Audio setup
+const audio = new Audio('https://soundimage.org/wp-content/uploads/2014/02/Blazing-Stars.mp3');
+audio.loop = true;
+audio.volume = 0.5;
+
+// Initialize sizes
 pipeTop.style.width = pipeWidth + "px";
 pipeBottom.style.width = pipeWidth + "px";
 bird.style.width = birdSize + "px";
@@ -39,19 +66,30 @@ bird.style.top = birdY + "px";
 
 // Load and display leaderboard
 function loadLeaderboard() {
-  let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
-  leaderboard.sort((a, b) => b.score - a.score);
-  leaderboard = leaderboard.slice(0, 5); // Top 5
-  leaderboardEl.innerHTML = leaderboard
-    .map(entry => `<li>${entry.name}: ${entry.score}</li>`)
-    .join('');
+  leaderboardRef.orderByChild("score").limitToLast(5).on("value", (snapshot) => {
+    const leaderboard = [];
+    snapshot.forEach((child) => {
+      leaderboard.push(child.val());
+    });
+    leaderboard.sort((a, b) => b.score - a.score); // Sort descending
+    leaderboardEl.innerHTML = leaderboard
+      .map(entry => `<li>${entry.name}: ${entry.score}</li>`)
+      .join('');
+  }, (error) => {
+    console.error("Error loading leaderboard:", error);
+  });
 }
 
-// Save score
+// Save score to Firebase
 function saveScore(name, score) {
-  let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
-  leaderboard.push({ name, score });
-  localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+  const newScoreRef = leaderboardRef.push();
+  newScoreRef.set({
+    name: name,
+    score: score,
+    timestamp: firebase.database.ServerValue.TIMESTAMP
+  }).catch((error) => {
+    console.error("Error saving score:", error);
+  });
 }
 
 function updateGame() {
@@ -59,10 +97,10 @@ function updateGame() {
   birdY += velocity;
   bird.style.top = birdY + "px";
 
-  // Move pipes from right to left
+  // Move pipes
   pipeX -= pipeSpeed;
 
-  // Reset pipes after leaving screen
+  // Reset pipes
   if (pipeX < -pipeWidth) {
     pipeX = gameWidth;
     let topHeight = Math.floor(Math.random() * (gameHeight * 0.4)) + 50;
@@ -102,10 +140,17 @@ function gameOver() {
 
 function flap() {
   velocity = jump;
+  if (!gameStarted) {
+    gameStarted = true;
+    audio.play().catch(error => console.log('Autoplay blocked:', error));
+    gameInterval = setInterval(updateGame, 20);
+  }
 }
 
 // Event listeners
-document.addEventListener("keydown", flap);
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space") flap();
+});
 document.addEventListener("click", flap);
 
 startButton.addEventListener("click", () => {
@@ -118,36 +163,13 @@ startButton.addEventListener("click", () => {
   startScreen.style.display = "none";
   gameContainer.style.display = "block";
 
-
-
-
   // Set up initial positions
   pipeX = gameWidth;
   birdY = gameHeight * 0.4;
   bird.style.top = birdY + "px";
   velocity = 0;
   score = 0;
-
-  gameInterval = setInterval(updateGame, 20);
 });
 
+// Load leaderboard on start
 loadLeaderboard();
-
-
-// Audio setup
-    const audio = new Audio('https://soundimage.org/wp-content/uploads/2014/02/Blazing-Stars.mp3');
-    audio.loop = true; // Loop the music
-    audio.volume = 0.5; // Set initial volume
-    let gameStarted = false;
-
-// Start game and music on first spacebar press
-    document.addEventListener('keydown', (e) => {
-      if (e.code === 'Space' && !gameStarted) {
-        gameStarted = true;
-        audio.play().catch(error => console.log('Autoplay blocked:', error)); // Start music
-        gameLoop(); // Start game loop
-      }
-      if (e.code === 'Space' && gameStarted) bird.velocity = -7; // Jump during gameplay
-    });
-
-  
