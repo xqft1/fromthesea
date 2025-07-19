@@ -86,10 +86,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // Save score
   function saveScore(name, score) {
     if (isSavingScore) {
-      console.log("Score save already in progress, ignoring");
-      return;
-    }
-    isSavingScore = true;
+  console.log("Score already saved, skipping");
+  return;
+}
+isSavingScore = true;
+console.log(`Saving score for ${name}: ${score}`);
+
     console.log(`Saving score for ${name}: ${score}`);
     const newScoreRef = leaderboardRef.push();
     newScoreRef.set({
