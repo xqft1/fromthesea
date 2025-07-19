@@ -1,4 +1,6 @@
+// Wait for the DOM to be fully loaded
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("DOM loaded, attaching startButton listener");
   const firebaseConfig = {
     apiKey: "AIzaSyBhyDiExECoc6J1TqJu6XeQCxgySMP7K5Q",
     authDomain: "fromthesea-c967a.firebaseapp.com",
@@ -10,6 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   firebase.initializeApp(firebaseConfig);
+  console.log("Firebase initialized");
   const database = firebase.database();
   const leaderboardRef = database.ref("leaderboard");
 
@@ -40,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let gameInterval;
   let gameStarted = false;
   let isGameOver = false;
-  let isSavingScore = false;
+  let scoreSaved = false;
 
   const audio = new Audio('https://soundimage.org/wp-content/uploads/2014/02/Blazing-Stars.mp3');
   audio.loop = true;
@@ -54,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
   bird.style.top = birdY + "px";
 
   function loadLeaderboard() {
-    leaderboardRef.off(); // Clear existing listener
+    console.log("Loading leaderboard...");
     leaderboardRef.orderByChild("score").limitToLast(5).on("value", (snapshot) => {
       const leaderboard = [];
       snapshot.forEach((child) => {
@@ -64,86 +67,49 @@ document.addEventListener("DOMContentLoaded", () => {
       leaderboardEl.innerHTML = leaderboard
         .map(entry => `<li>${entry.name}: ${entry.score}</li>`)
         .join('');
+      console.log("Leaderboard updated:", leaderboard);
     }, (error) => {
       console.error("Error loading leaderboard:", error);
     });
   }
 
   function saveScore(name, score) {
-  if (isSavingScore) {
-    console.log("Score already saved, skipping");
-    return Promise.resolve();
+    if (scoreSaved) {
+      console.log("Score already saved. Skipping.");
+      return Promise.resolve();
+    }
+    scoreSaved = true;
+    console.log(`Saving score for ${name}: ${score}`);
+    return leaderboardRef.push({
+      name: name,
+      score: score,
+      timestamp: firebase.database.ServerValue.TIMESTAMP
+    }).then(() => {
+      console.log("Score saved successfully.");
+    }).catch((error) => {
+      console.error("Error saving score:", error);
+    });
   }
-  isSavingScore = true;
-  console.log(`Saving score for ${name}: ${score}`);
-  return leaderboardRef.push({
-    name: name,
-    score: score,
-    timestamp: firebase.database.ServerValue.TIMESTAMP
-  }).then(() => {
-    console.log("Score saved successfully");
-  }).catch((error) => {
-    console.error("Error saving score:", error);
-  });
-}
-
-function gameOver() {
-  if (isGameOver) {
-    console.log("Game over already triggered, ignoring");
-    return;
-  }
-  isGameOver = true;
-  console.log("Game over triggered");
-
-  clearInterval(gameInterval);
-  audio.pause();
-
-  document.removeEventListener("keydown", flapHandler);
-  document.removeEventListener("click", flap);
-
-  saveScore(username, score).finally(() => {
-    setTimeout(() => {
-      console.log("Returning to main page");
-      startScreen.style.display = "block";
-      gameContainer.style.display = "none";
-      
-      // Reset game state but DO NOT reset isSavingScore here
-      isGameOver = false;
-      // isSavingScore = false;  <-- remove this line to block multiple saves
-      gameStarted = false;
-      usernameInput.value = '';
-      scoreDisplay.innerText = '0';
-
-      loadLeaderboard();
-
-      // Optionally disable start button to prevent restarting and scoring again
-      startButton.disabled = true;
-      usernameInput.disabled = true;
-
-    }, 1000);
-  });
-}
-
-
 
   function checkCollision() {
-    if (isGameOver) return { collision: false };
+    if (isGameOver) return { collision: false, reason: "game over" };
+
     const birdRect = bird.getBoundingClientRect();
     const topRect = pipeTop.getBoundingClientRect();
     const bottomRect = pipeBottom.getBoundingClientRect();
     const containerRect = gameContainer.getBoundingClientRect();
 
     if (birdRect.bottom > containerRect.bottom || birdRect.top < containerRect.top) {
-      return { collision: true };
+      return { collision: true, reason: "boundary" };
     }
     if (
       birdRect.right > topRect.left &&
       birdRect.left < topRect.right &&
       (birdRect.top < topRect.bottom || birdRect.bottom > bottomRect.top)
     ) {
-      return { collision: true };
+      return { collision: true, reason: "pipe" };
     }
-    return { collision: false };
+    return { collision: false, reason: "none" };
   }
 
   function updateGame() {
@@ -152,6 +118,7 @@ function gameOver() {
     velocity += gravity;
     birdY += velocity;
     bird.style.top = birdY + "px";
+    bird.style.transition = "top 0.02s linear";
 
     pipeX -= pipeSpeed;
 
@@ -166,32 +133,63 @@ function gameOver() {
     pipeTop.style.left = pipeX + "px";
     pipeBottom.style.left = pipeX + "px";
 
+    const { collision } = checkCollision();
     if (collision) {
-      console.log(`Stopping game loop due to ${reason} collision`);
       clearInterval(gameInterval);
-      gameInterval = null;  // avoid duplicate clears
-      document.removeEventListener("keydown", flapHandler);
-      document.removeEventListener("click", flap);
       gameOver();
-      return; // stop further update logic
-}
-
     }
 
     scoreDisplay.innerText = score;
   }
 
+  function gameOver() {
+    if (isGameOver || scoreSaved) {
+      console.log("Game over already handled");
+      return;
+    }
+    isGameOver = true;
+
+    clearInterval(gameInterval);
+    audio.pause();
+
+    document.removeEventListener("keydown", flapHandler);
+    document.removeEventListener("click", flap);
+
+    saveScore(username, score).finally(() => {
+      setTimeout(() => {
+        startScreen.style.display = "block";
+        gameContainer.style.display = "none";
+        gameStarted = false;
+
+        isGameOver = false;
+        usernameInput.value = '';
+        scoreDisplay.innerText = '0';
+        loadLeaderboard();
+        startButton.disabled = false;
+        usernameInput.disabled = false;
+      }, 1000);
+    });
+  }
+
   function flap() {
-    if (!isGameOver) velocity = jump;
+    if (isGameOver) return;
+    velocity = jump;
+    bird.style.transition = "top 0.05s ease-out";
   }
 
   function flapHandler(e) {
     if (e.code === "Space") flap();
   }
 
+  document.addEventListener("keydown", flapHandler);
+  document.addEventListener("click", flap);
+
   startButton.addEventListener("click", () => {
     const input = usernameInput.value.trim();
-    if (input === "") return alert("Please enter your name!");
+    if (input === "") {
+      alert("Please enter your name!");
+      return;
+    }
     username = input;
     startScreen.style.display = "none";
     gameContainer.style.display = "block";
@@ -202,12 +200,10 @@ function gameOver() {
     velocity = 0;
     score = 0;
     isGameOver = false;
-    isSavingScore = false;
+    scoreSaved = false;
     gameStarted = true;
 
-    document.addEventListener("keydown", flapHandler);
-    document.addEventListener("click", flap);
-    audio.play().catch(console.log);
+    audio.play().catch(error => console.log('Autoplay blocked:', error));
     gameInterval = setInterval(updateGame, 20);
   });
 
