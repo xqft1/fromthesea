@@ -148,7 +148,7 @@ h1 {
 /* Obstacle */
 .obstacle {
   position: absolute;
-  width: 8vw;
+  width: 6vw;
   background: linear-gradient(
     135deg,
     #ffffff 20%,
@@ -156,8 +156,6 @@ h1 {
     #ffffff 60%,
     #e6f7ff 80%
   );
-  border: 9px solid #00ccff; /* default: all borders */
-  border-radius: 8px;
   image-rendering: pixelated;
   box-shadow: 
     inset 0 0 16px rgba(0, 204, 255, 0.5),
@@ -165,8 +163,6 @@ h1 {
   z-index: 2;
   transition: border-width 0.2s;
 }
-
-
 
 #pipe-top {
   top: 0;
