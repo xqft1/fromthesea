@@ -276,3 +276,35 @@ h1 {
         width: 90%; /* Full-width on mobile */
         max-width: 300px; /* Prevent overly wide buttons */
       }
+
+
+/* Container for animated stars */
+#starfield {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* Star base style */
+.star {
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+  opacity: 0.8;
+  animation: moveLeft linear infinite;
+}
+
+/* Random animation timing + speed */
+@keyframes moveLeft {
+  from {
+    transform: translateX(100vw);
+  }
+  to {
+    transform: translateX(-10vw);
+  }
+}
