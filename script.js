@@ -12,236 +12,186 @@ document.addEventListener("DOMContentLoaded", () => {
     appId: "1:921773077324:web:d9e58bc48e9de742ff95e9",
   };
 
-  // Initialize Firebase only once
-  if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-    console.log("Firebase initialized");
-  }
-  const database = firebase.database();
-  const leaderboardRef = database.ref("leaderboard");
+  firebase.initializeApp(firebaseConfig);
+  const leaderboardRef = firebase.database().ref("leaderboard");
 
+  // DOM Elements
   const bird = document.getElementById("bird");
   const pipeTop = document.getElementById("pipe-top");
   const pipeBottom = document.getElementById("pipe-bottom");
-  const scoreDisplay = document.getElementById("score");
   const startScreen = document.getElementById("start-screen");
   const gameContainer = document.getElementById("game-container");
+  const scoreDisplay = document.getElementById("score");
+  const leaderboardList = document.getElementById("leaderboard");
   const startButton = document.getElementById("start-button");
   const usernameInput = document.getElementById("username");
-  const leaderboardEl = document.getElementById("leaderboard");
 
-  // Game settings
-  let gameWidth = window.innerWidth;
-  let gameHeight = window.innerHeight;
-  let pipeWidth = gameWidth * 0.08;
-  let pipeSpeed = gameWidth * 0.005;
-  let birdSize = gameWidth * 0.08;
-  let pipeGap = gameHeight * 0.4;
-
-  // Game state variables
-  let birdY = gameHeight * 0.8;
+  // Game variables
+  const gravity = 0.5;
+  const jump = -8;
+  let birdY = 200;
   let velocity = 0;
-  let gravity = 0.4;
-  let jump = -8;
-  let pipeX = gameWidth;
+  let pipeX = 500;
+  let pipeWidth = 60;
+  let pipeGap = 200;
   let score = 0;
-  let username = '';
-  let gameInterval = null;
-  let gameStarted = false;
   let isGameOver = false;
-  let hasSavedScore = false;  // FLAG: ensure one score save only
+  let hasSavedScore = false;
+  let username = "";
+  let gameInterval;
 
-  const audio = new Audio('https://soundimage.org/wp-content/uploads/2014/02/Blazing-Stars.mp3');
+  const audio = new Audio("https://soundimage.org/wp-content/uploads/2021/10/Funky-Gameplay-Loop.mp3");
   audio.loop = true;
-  audio.volume = 0.5;
+  audio.volume = 0.4;
 
-  // Setup sizes
-  pipeTop.style.width = pipeWidth + "px";
-  pipeBottom.style.width = pipeWidth + "px";
-  bird.style.width = birdSize + "px";
-  bird.style.height = birdSize + "px";
-  bird.style.left = gameWidth * 0.15 + "px";
-  bird.style.top = birdY + "px";
+  function initGame() {
+    // Set positions
+    birdY = 200;
+    velocity = 0;
+    pipeX = 500;
+    score = 0;
+    isGameOver = false;
+    hasSavedScore = false;
 
-  // Load leaderboard top 5 scores
-  function loadLeaderboard() {
-    console.log("Loading leaderboard...");
-    leaderboardRef
-      .orderByChild("score")
-      .limitToLast(5)
-      .once("value")
-      .then(snapshot => {
-        const leaderboard = [];
-        snapshot.forEach(child => {
-          leaderboard.push(child.val());
-        });
-        leaderboard.sort((a, b) => b.score - a.score);
-        leaderboardEl.innerHTML = leaderboard
-          .map(entry => `<li>${entry.name}: ${entry.score}</li>`)
-          .join('');
-        console.log("Leaderboard updated:", leaderboard);
-      })
-      .catch(error => {
-        console.error("Error loading leaderboard:", error);
-      });
+    bird.style.top = `${birdY}px`;
+    pipeTop.style.left = `${pipeX}px`;
+    pipeBottom.style.left = `${pipeX}px`;
+
+    generatePipes();
+    updateScore();
   }
 
-  // Save score only once per game session
-  function saveScoreOnce(name, score) {
-    if (hasSavedScore) {
-      console.log("Score already saved, skipping.");
-      return;
-    }
-    hasSavedScore = true;
+  function generatePipes() {
+    const topHeight = Math.random() * 200 + 50;
+    const bottomHeight = 400 - topHeight - pipeGap;
 
-    leaderboardRef.push({
-      name: name,
-      score: score,
-      timestamp: firebase.database.ServerValue.TIMESTAMP
-    }).then(() => {
-      console.log("Score saved once.");
-      loadLeaderboard(); // Refresh leaderboard after save
-    }).catch(err => {
-      console.error("Error saving score:", err);
-    });
+    pipeTop.style.height = `${topHeight}px`;
+    pipeBottom.style.height = `${bottomHeight}px`;
+    pipeBottom.style.top = `${topHeight + pipeGap}px`;
   }
 
-  // Collision detection
-  function checkCollision() {
-    if (isGameOver) {
-      return { collision: false, reason: "game over" };
-    }
-    const birdRect = bird.getBoundingClientRect();
-    const topRect = pipeTop.getBoundingClientRect();
-    const bottomRect = pipeBottom.getBoundingClientRect();
-    const containerRect = gameContainer.getBoundingClientRect();
-
-    if (birdRect.bottom > containerRect.bottom) {
-      return { collision: true, reason: "bottom" };
-    }
-    if (birdRect.top < containerRect.top) {
-      return { collision: true, reason: "top" };
-    }
-    if (
-      birdRect.right > topRect.left &&
-      birdRect.left < topRect.right &&
-      (birdRect.top < topRect.bottom || birdRect.bottom > bottomRect.top)
-    ) {
-      return { collision: true, reason: "pipe" };
-    }
-    return { collision: false, reason: "none" };
-  }
-
-  // Update game frame
   function updateGame() {
     if (isGameOver) return;
 
     velocity += gravity;
     birdY += velocity;
-    bird.style.top = birdY + "px";
 
-    pipeX -= pipeSpeed;
+    pipeX -= 4;
 
     if (pipeX < -pipeWidth) {
-      pipeX = gameWidth;
-      let topHeight = Math.floor(Math.random() * (gameHeight * 0.4)) + 50;
-      pipeTop.style.height = topHeight + "px";
-      pipeBottom.style.height = (gameHeight - topHeight - pipeGap) + "px";
-      score++;
+      pipeX = 500;
+      generatePipes();
+      score += 1;
+      updateScore();
     }
 
-    pipeTop.style.left = pipeX + "px";
-    pipeBottom.style.left = pipeX + "px";
+    bird.style.top = `${birdY}px`;
+    pipeTop.style.left = `${pipeX}px`;
+    pipeBottom.style.left = `${pipeX}px`;
 
-    const { collision, reason } = checkCollision();
-    if (collision) {
-      clearInterval(gameInterval);
-      document.removeEventListener("keydown", flapHandler);
-      document.removeEventListener("click", flap);
-      gameOver();
-      return;
+    if (checkCollision()) {
+      endGame();
     }
-
-    scoreDisplay.innerText = score;
   }
 
-  // Game over logic
-  function gameOver() {
+  function updateScore() {
+    scoreDisplay.textContent = score;
+  }
+
+  function checkCollision() {
+    const birdRect = bird.getBoundingClientRect();
+    const pipeTopRect = pipeTop.getBoundingClientRect();
+    const pipeBottomRect = pipeBottom.getBoundingClientRect();
+
+    if (
+      birdRect.top < 0 ||
+      birdRect.bottom > window.innerHeight ||
+      (birdRect.right > pipeTopRect.left &&
+        birdRect.left < pipeTopRect.right &&
+        (birdRect.top < pipeTopRect.bottom ||
+          birdRect.bottom > pipeBottomRect.top))
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  function endGame() {
     if (isGameOver) return;
     isGameOver = true;
-    console.log("Game over triggered");
-
+    clearInterval(gameInterval);
     audio.pause();
-    saveScoreOnce(username, score);
-
+    saveScoreOnce();
     setTimeout(() => {
       startScreen.style.display = "block";
       gameContainer.style.display = "none";
-
-      // Reset game state
-      isGameOver = false;
-      hasSavedScore = false;
-      gameStarted = false;
-      usernameInput.value = '';
-      scoreDisplay.innerText = '0';
-
       loadLeaderboard();
     }, 1000);
   }
 
-  // Flap bird
+  function saveScoreOnce() {
+    if (hasSavedScore) return;
+    hasSavedScore = true;
+
+    if (!username || score <= 0) return;
+
+    leaderboardRef.push({
+      name: username,
+      score: score,
+      timestamp: firebase.database.ServerValue.TIMESTAMP
+    }).then(() => {
+      console.log("Score saved once.");
+    }).catch(err => {
+      console.error("Error saving score:", err);
+    });
+  }
+
   function flap() {
-    if (isGameOver) return;
-    velocity = jump;
+    if (!isGameOver) {
+      velocity = jump;
+    }
   }
 
-  // Flap keyboard handler
-  function flapHandler(e) {
+  document.addEventListener("keydown", e => {
     if (e.code === "Space") flap();
-  }
+  });
 
-  // Remove any duplicate event listeners before adding
-  function setupEventListeners() {
-    document.removeEventListener("keydown", flapHandler);
-    document.removeEventListener("click", flap);
-    document.addEventListener("keydown", flapHandler);
-    document.addEventListener("click", flap);
-  }
+  document.addEventListener("click", () => {
+    flap();
+  });
 
-  // Start game handler
   startButton.addEventListener("click", () => {
-    const input = usernameInput.value.trim();
-    if (input === "") {
-      alert("Please enter your name!");
+    const name = usernameInput.value.trim();
+    if (!name) {
+      alert("Please enter a name.");
       return;
     }
-    username = input;
 
-    // Show game, hide start screen
+    username = name;
     startScreen.style.display = "none";
     gameContainer.style.display = "block";
 
-    // Reset positions and states
-    pipeX = gameWidth;
-    birdY = gameHeight * 0.4;
-    bird.style.top = birdY + "px";
-    velocity = 0;
-    score = 0;
-    isGameOver = false;
-    hasSavedScore = false;
-    gameStarted = true;
-
-    setupEventListeners();
-
-    audio.play().catch(e => console.log('Audio play failed:', e));
-
-    if (gameInterval) clearInterval(gameInterval);
+    initGame();
+    audio.play().catch(() => {});
     gameInterval = setInterval(updateGame, 20);
-
-    scoreDisplay.innerText = score;
-    console.log("Game loop started");
   });
 
-  // Initial leaderboard load on page ready
+  function loadLeaderboard() {
+    leaderboardRef
+      .orderByChild("score")
+      .limitToLast(5)
+      .once("value", snapshot => {
+        const scores = [];
+        snapshot.forEach(child => {
+          scores.push(child.val());
+        });
+
+        scores.sort((a, b) => b.score - a.score);
+
+        leaderboardList.innerHTML = scores.map(score => `<li>${score.name}: ${score.score}</li>`).join("");
+      });
+  }
+
   loadLeaderboard();
 });
