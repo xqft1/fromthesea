@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Firebase setup (keep your config unchanged)
+  // Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyBhyDiExECoc6J1TqJu6XeQCxgySMP7K5Q",
     authDomain: "fromthesea-c967a.firebaseapp.com",
@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
     projectId: "fromthesea-c967a",
     storageBucket: "fromthesea-c967a.appspot.com",
     messagingSenderId: "921773077324",
-    appId: "1:921773077324:web:d9e58bc48e9de742ff95e9"
+    appId: "1:921773077324:web:921773077324"
   };
   firebase.initializeApp(firebaseConfig);
   const leaderboardRef = firebase.database().ref("leaderboard");
@@ -23,117 +23,94 @@ document.addEventListener("DOMContentLoaded", () => {
   const startButton = document.getElementById("start-button");
   const usernameInput = document.getElementById("username");
 
-  // Game state and constants
   let gravity = 0.4, jump = -8;
-  let birdY = 0, velocity = 0, pipeX = 0, score = 0;
+  let birdY, velocity, pipeX, score;
   let isGameOver = false, hasSavedScore = false;
-  let username = "", gameLoopId = null;
-  let lastTimestamp = 0;
+  let username = "", gameInterval;
 
-  const audio = new Audio("https://soundimage.org/wp-content/uploads/2014/02/Blazing-Stars.mp3");
-  audio.loop = true; audio.volume = 0.5;
+  const audio = new Audio("https://soundimage.org/wp-content/uploads/2016/10/Arcade-Fantasy.mp3");
+  audio.loop = true;
+  audio.volume = 0.5;
 
-  // Initial setup
-  setupResponsiveUI();
+  setupUI();
   loadLeaderboard();
 
-  startButton.addEventListener("click", startGame);
-  gameContainer.addEventListener("touchstart", flap);  // mobile touch support
-
-  function setupResponsiveUI() {
-    const w = window.innerWidth;
-    const birdSize = Math.min(15 * w / 100, 120);
+  function setupUI() {
+    const width = window.innerWidth;
+    const birdSize = width * 0.08;
+    const pipeWidth = width * 0.08;
     bird.style.width = bird.style.height = birdSize + "px";
-    bird.style.imageRendering = "pixelated";
-    bird.style.willChange = "transform";
-
-    const pipeWidth = Math.min(8 * w / 100, 120);
     pipeTop.style.width = pipeBottom.style.width = pipeWidth + "px";
   }
 
+  startButton.addEventListener("click", startGame);
   function startGame() {
     const name = usernameInput.value.trim();
-    if (!name) return alert("Please enter your name.");
+    if (!name) return alert("Enter your name");
     username = name;
-
-    isGameOver = false;
-    hasSavedScore = false;
-    score = 0; velocity = 0;
-    birdY = window.innerHeight * 0.4;
-    pipeX = window.innerWidth;
-    bird.style.transform = `translateY(${birdY}px)`;
-    scoreDisplay.textContent = score;
+    resetGameState();
 
     startScreen.style.display = "none";
     gameContainer.style.display = "block";
-
+    document.addEventListener("keydown", flapHandler);
+    document.addEventListener("click", flapHandler);
     audio.play().catch(() => {});
 
-    cancelAnimationFrame(gameLoopId);
-    lastTimestamp = performance.now();
-    gameLoopId = requestAnimationFrame(gameLoop);
+    clearInterval(gameInterval);
+    gameInterval = setInterval(updateGame, 20);
   }
 
-  function gameLoop(ts) {
+  function resetGameState() {
+    isGameOver = false;
+    hasSavedScore = false;
+    score = 0;
+    velocity = 0;
+    birdY = window.innerHeight * 0.4;
+    pipeX = window.innerWidth;
+    bird.style.top = birdY + "px";
+    scoreDisplay.textContent = score;
+  }
+
+  function updateGame() {
     if (isGameOver) return;
-    const delta = ts - lastTimestamp;
-    lastTimestamp = ts;
+    velocity += gravity;
+    birdY += velocity;
+    pipeX -= window.innerWidth * 0.005;
 
-    // Physics
-    velocity += gravity * (delta / 20);
-    birdY += velocity * (delta / 20);
-
-    // Update pipes
-    pipeX -= window.innerWidth * 0.005 * (delta / 20);
-    if (pipeX < -pipeTop.clientWidth) {
+    if (pipeX < -window.innerWidth * 0.08) {
       pipeX = window.innerWidth;
-      const gap = window.innerHeight * 0.4;
       const topH = Math.random() * (window.innerHeight * 0.4) + 50;
-      const botH = window.innerHeight - topH - gap;
+      const botH = window.innerHeight - topH - (window.innerHeight * 0.4);
       pipeTop.style.height = topH + "px";
       pipeBottom.style.height = botH + "px";
       score++;
       scoreDisplay.textContent = score;
     }
 
-    // Update UI
-    bird.style.transform = `translateY(${birdY}px)`;
-    pipeTop.style.left = pipeBottom.style.left = pipeX + "px";
+    bird.style.top = birdY + "px";
+    pipeTop.style.left = pipeX + "px";
+    pipeBottom.style.left = pipeX + "px";
 
-    if (checkCollision()) return endGame();
-
-    gameLoopId = requestAnimationFrame(gameLoop);
+    if (checkCollision()) endGame();
   }
-
-  function flap() {
-    if (isGameOver) return;
-    velocity = jump;
-  }
-
-  document.addEventListener("keydown", e => {
-    if (e.code === "Space") flap();
-  });
 
   function checkCollision() {
     const b = bird.getBoundingClientRect();
     const t = pipeTop.getBoundingClientRect();
     const bot = pipeBottom.getBoundingClientRect();
-    const height = window.innerHeight;
-
-    if (b.top < 0 || b.bottom > height) return true;
-    if (b.right > t.left && b.left < t.right &&
-       (b.top < t.bottom || b.bottom > bot.top)) return true;
-
+    if (b.top < 0 || b.bottom > window.innerHeight) return true;
+    if (b.right > t.left && b.left < t.right && (b.top < t.bottom || b.bottom > bot.top)) return true;
     return false;
   }
 
   function endGame() {
     if (isGameOver) return;
     isGameOver = true;
-    cancelAnimationFrame(gameLoopId);
+    clearInterval(gameInterval);
     audio.pause();
+    document.removeEventListener("keydown", flapHandler);
+    document.removeEventListener("click", flapHandler);
     saveScoreOnce();
-
     setTimeout(() => {
       startScreen.style.display = "block";
       gameContainer.style.display = "none";
@@ -152,24 +129,38 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch(err => console.error("Save error:", err));
   }
 
-  function loadLeaderboard() {
-    leaderboardRef.orderByChild("score").limitToLast(5)
-      .once("value", snap => {
-        const arr = [];
-        snap.forEach(c => arr.push(c.val()));
-        const best = {};
-        arr.forEach(e => {
-          if (!best[e.name] || e.score > best[e.name].score) {
-            best[e.name] = e;
-          }
-        });
-        const top5 = Object.values(best)
-          .sort((a,b) => b.score - a.score)
-          .slice(0,5);
+  function flapHandler(e) {
+    if (e.type === "keydown" && e.code !== "Space") return;
+    if (!isGameOver) velocity = jump;
+  }
 
-        leaderboardEl.innerHTML = top5
-          .map(e => `<li>${e.name}: ${e.score}</li>`)
-          .join("");
-      }, err => console.error("Load error:", err));
+  
+  function loadLeaderboard() {
+    leaderboardRef.orderByChild("score").once("value", snapshot => {
+      const entries = [];
+      snapshot.forEach(child => {
+        const e = child.val();
+        entries.push(e);
+        console.log("Raw entry:", e);
+      });
+      console.log("All entries count:", entries.length);
+
+      const best = {};
+      entries.forEach(e => {
+        if (!best[e.name] || e.score > best[e.name].score) {
+          best[e.name] = e;
+        }
+      });
+      const unique = Object.values(best);
+      console.log("Filtered unique entries:", unique);
+
+      unique.sort((a, b) => b.score - a.score);
+      const top5 = unique.slice(0, 5);
+      console.log("Top5:", top5);
+
+      leaderboardEl.innerHTML = top5.map(e => `<li>${e.name}: ${e.score}</li>`).join("");
+    }, err => {
+      console.error("Leaderboard load error:", err);
+    });
   }
 });
