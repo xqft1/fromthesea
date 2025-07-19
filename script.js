@@ -1,7 +1,6 @@
 // Wait for the DOM to be fully loaded
 document.addEventListener("DOMContentLoaded", () => {
   console.log("DOM loaded, attaching startButton listener");
-  // Replace with your own config from Firebase Console
   const firebaseConfig = {
     apiKey: "AIzaSyBhyDiExECoc6J1TqJu6XeQCxgySMP7K5Q",
     authDomain: "fromthesea-c967a.firebaseapp.com",
@@ -12,13 +11,11 @@ document.addEventListener("DOMContentLoaded", () => {
     appId: "1:921773077324:web:d9e58bc48e9de742ff95e9",
   };
 
-  // Initialize Firebase
   firebase.initializeApp(firebaseConfig);
   console.log("Firebase initialized");
   const database = firebase.database();
   const leaderboardRef = database.ref("leaderboard");
 
-  // Game elements
   const bird = document.getElementById("bird");
   const pipeTop = document.getElementById("pipe-top");
   const pipeBottom = document.getElementById("pipe-bottom");
@@ -29,17 +26,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const usernameInput = document.getElementById("username");
   const leaderboardEl = document.getElementById("leaderboard");
 
-  // Screen dimensions
   let gameWidth = window.innerWidth;
   let gameHeight = window.innerHeight;
-
-  // Sizes
   let pipeWidth = gameWidth * 0.08;
   let pipeSpeed = gameWidth * 0.005;
   let birdSize = gameWidth * 0.08;
   let pipeGap = gameHeight * 0.4;
 
-  // Game state
   let birdY = gameHeight * 0.8;
   let velocity = 0;
   let gravity = 0.4;
@@ -51,14 +44,11 @@ document.addEventListener("DOMContentLoaded", () => {
   let gameStarted = false;
   let isGameOver = false;
   let isSavingScore = false;
-  let gameOverTriggered = false;
 
-  // Audio
   const audio = new Audio('https://soundimage.org/wp-content/uploads/2014/02/Blazing-Stars.mp3');
   audio.loop = true;
   audio.volume = 0.5;
 
-  // Initialize positions and sizes
   pipeTop.style.width = pipeWidth + "px";
   pipeBottom.style.width = pipeWidth + "px";
   bird.style.width = birdSize + "px";
@@ -66,7 +56,6 @@ document.addEventListener("DOMContentLoaded", () => {
   bird.style.left = gameWidth * 0.15 + "px";
   bird.style.top = birdY + "px";
 
-  // Load leaderboard
   function loadLeaderboard() {
     console.log("Loading leaderboard...");
     leaderboardRef.orderByChild("score").limitToLast(5).on("value", (snapshot) => {
@@ -84,15 +73,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Save score
   function saveScore(name, score) {
     if (isSavingScore) {
-  console.log("Score already saved, skipping");
-  return;
-}
-isSavingScore = true;
-console.log(`Saving score for ${name}: ${score}`);
-
+      console.log("Score already saved, skipping");
+      return;
+    }
+    isSavingScore = true;
     console.log(`Saving score for ${name}: ${score}`);
     const newScoreRef = leaderboardRef.push();
     newScoreRef.set({
@@ -103,11 +89,9 @@ console.log(`Saving score for ${name}: ${score}`);
       console.error("Error saving score:", error);
     }).finally(() => {
       console.log("Score save completed");
-      isSavingScore = false;
     });
   }
 
-  // Check for collision
   function checkCollision() {
     if (isGameOver) {
       console.log("Collision check skipped due to game over");
@@ -118,7 +102,6 @@ console.log(`Saving score for ${name}: ${score}`);
     const bottomRect = pipeBottom.getBoundingClientRect();
     const containerRect = gameContainer.getBoundingClientRect();
 
-    // Prioritize collision conditions
     if (birdRect.bottom > containerRect.bottom) {
       console.log("Collision detected: bottom");
       return { collision: true, reason: "bottom" };
@@ -138,7 +121,6 @@ console.log(`Saving score for ${name}: ${score}`);
     return { collision: false, reason: "none" };
   }
 
-  // Game loop
   function updateGame() {
     if (isGameOver) {
       console.log("Game loop stopped due to game over");
@@ -165,7 +147,6 @@ console.log(`Saving score for ${name}: ${score}`);
     if (collision) {
       console.log(`Stopping game loop due to ${reason} collision`);
       clearInterval(gameInterval);
-      // Remove event listeners immediately
       document.removeEventListener("keydown", flapHandler);
       document.removeEventListener("click", flap);
       gameOver();
@@ -174,38 +155,34 @@ console.log(`Saving score for ${name}: ${score}`);
     scoreDisplay.innerText = score;
   }
 
- function gameOver() {
-  if (isGameOver) {
-    console.log("Game over already triggered, ignoring");
-    return;
+  function gameOver() {
+    if (isGameOver) {
+      console.log("Game over already triggered, ignoring");
+      return;
+    }
+    isGameOver = true;
+    console.log("Game over triggered");
+
+    clearInterval(gameInterval);
+    audio.pause();
+    document.removeEventListener("keydown", flapHandler);
+    document.removeEventListener("click", flap);
+
+    if (!isSavingScore) {
+      saveScore(username, score);
+    }
+
+    setTimeout(() => {
+      console.log("Returning to main page");
+      startScreen.style.display = "block";
+      gameContainer.style.display = "none";
+      isGameOver = false;
+      isSavingScore = false;
+      gameStarted = false;
+      usernameInput.value = '';
+      scoreDisplay.innerText = '0';
+    }, 1000);
   }
-  isGameOver = true;
-  console.log("Game over triggered");
-  if (gameOverTriggered) return;
-  gameOverTriggered = true;
-   
-
-  // Stop the music and game loop
-  audio.pause();
-  clearInterval(gameInterval);
-
-  // Detach input listeners to fully stop player interaction
-  document.removeEventListener("keydown", flapHandler);
-  document.removeEventListener("click", flap);
-
-  // Save score only once
-  if (!isSavingScore) {
-    saveScore(username, score);
-  }
-
-  // Delay the alert to make sure state is settled
-  setTimeout(() => {
-    alert(`Game Over, ${username}! Your Score: ${score}`);
-    console.log("Reloading page after game over alert");
-    location.reload();
-  }, 200); // slight delay prevents double-firing
-}
-
 
   function flap() {
     if (isGameOver) {
@@ -215,7 +192,6 @@ console.log(`Saving score for ${name}: ${score}`);
     velocity = jump;
   }
 
-  // Event listeners
   document.removeEventListener("keydown", flapHandler);
   document.removeEventListener("click", flap);
   function flapHandler(e) {
@@ -246,7 +222,7 @@ console.log(`Saving score for ${name}: ${score}`);
     isGameOver = false;
     isSavingScore = false;
     gameStarted = true;
-    // Re-attach event listeners
+
     document.removeEventListener("keydown", flapHandler);
     document.removeEventListener("click", flap);
     document.addEventListener("keydown", flapHandler);
@@ -256,6 +232,5 @@ console.log(`Saving score for ${name}: ${score}`);
     console.log("Game loop started");
   });
 
-  // Start by loading leaderboard
   loadLeaderboard();
 });
