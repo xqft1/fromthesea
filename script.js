@@ -74,23 +74,25 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function saveScore(name, score) {
-    if (isSavingScore) {
-      console.log("Score already saved, skipping");
-      return;
-    }
-    isSavingScore = true;
-    console.log(`Saving score for ${name}: ${score}`);
-    const newScoreRef = leaderboardRef.push();
-    newScoreRef.set({
-      name: name,
-      score: score,
-      timestamp: firebase.database.ServerValue.TIMESTAMP
-    }).catch((error) => {
-      console.error("Error saving score:", error);
-    }).finally(() => {
-      console.log("Score save completed");
-    });
+  if (isSavingScore) {
+    console.log("Score already saving or saved, skipping");
+    return;
   }
+
+  isSavingScore = true;
+  console.log(`Saving score for ${name}: ${score}`);
+
+  leaderboardRef.push({
+    name: name,
+    score: score,
+    timestamp: firebase.database.ServerValue.TIMESTAMP
+  }).then(() => {
+    console.log("Score saved successfully");
+  }).catch((error) => {
+    console.error("Error saving score:", error);
+  });
+}
+
 
   function checkCollision() {
     if (isGameOver) {
@@ -155,34 +157,34 @@ document.addEventListener("DOMContentLoaded", () => {
     scoreDisplay.innerText = score;
   }
 
-  function gameOver() {
-    if (isGameOver) {
-      console.log("Game over already triggered, ignoring");
-      return;
-    }
-    isGameOver = true;
-    console.log("Game over triggered");
-
-    clearInterval(gameInterval);
-    audio.pause();
-    document.removeEventListener("keydown", flapHandler);
-    document.removeEventListener("click", flap);
-
-    if (!isSavingScore) {
-      saveScore(username, score);
-    }
-
-    setTimeout(() => {
-      console.log("Returning to main page");
-      startScreen.style.display = "block";
-      gameContainer.style.display = "none";
-      isGameOver = false;
-      isSavingScore = false;
-      gameStarted = false;
-      usernameInput.value = '';
-      scoreDisplay.innerText = '0';
-    }, 1000);
+ function gameOver() {
+  if (isGameOver) {
+    console.log("Game over already handled, skipping");
+    return;
   }
+
+  isGameOver = true;
+  console.log("Game over triggered");
+
+  clearInterval(gameInterval);
+  audio.pause();
+  document.removeEventListener("keydown", flapHandler);
+  document.removeEventListener("click", flap);
+
+  saveScore(username, score);
+
+  setTimeout(() => {
+    console.log("Returning to main page");
+    startScreen.style.display = "block";
+    gameContainer.style.display = "none";
+    isGameOver = false;
+    isSavingScore = false;
+    gameStarted = false;
+    usernameInput.value = '';
+    scoreDisplay.innerText = '0';
+  }, 1000);
+}
+
 
   function flap() {
     if (isGameOver) {
