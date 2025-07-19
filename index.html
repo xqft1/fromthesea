@@ -10,6 +10,39 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="script.js"></script>  
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const starfield = document.createElement("div");
+    starfield.id = "starfield";
+    document.body.appendChild(starfield);
+
+    const numStars = 150;
+
+    for (let i = 0; i < numStars; i++) {
+      const star = document.createElement("div");
+      star.className = "star";
+
+      const size = Math.random() * 2 + 1;
+      const duration = Math.random() * 3 + 2; // 2 to 5 seconds
+      const delay = Math.random() * 5;
+      const top = Math.random() * 100;
+      const left = Math.random() * 100;
+
+      Object.assign(star.style, {
+        width: `${size}px`,
+        height: `${size}px`,
+        top: `${top}%`,
+        left: `${left}vw`,
+        animationDuration: `${duration}s`,
+        animationDelay: `-${delay}s`,
+      });
+
+      starfield.appendChild(star);
+    }
+  });
+</script>
+  
 </head>
 <body>
 
