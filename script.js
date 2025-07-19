@@ -51,6 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let gameStarted = false;
   let isGameOver = false;
   let isSavingScore = false;
+  let gameOverTriggered = false;
 
   // Audio
   const audio = new Audio('https://soundimage.org/wp-content/uploads/2014/02/Blazing-Stars.mp3');
@@ -180,6 +181,9 @@ console.log(`Saving score for ${name}: ${score}`);
   }
   isGameOver = true;
   console.log("Game over triggered");
+  if (gameOverTriggered) return;
+  gameOverTriggered = true;
+   
 
   // Stop the music and game loop
   audio.pause();
