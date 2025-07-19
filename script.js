@@ -70,14 +70,57 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function saveScore(name, score) {
-    if (isSavingScore) return;
-    isSavingScore = true;
-    leaderboardRef.push({
-      name,
-      score,
-      timestamp: firebase.database.ServerValue.TIMESTAMP
-    }).catch(console.error);
+  if (isSavingScore) {
+    console.log("Score already saved, skipping");
+    return Promise.resolve();
   }
+  isSavingScore = true;
+  console.log(`Saving score for ${name}: ${score}`);
+  return leaderboardRef.push({
+    name: name,
+    score: score,
+    timestamp: firebase.database.ServerValue.TIMESTAMP
+  }).then(() => {
+    console.log("Score saved successfully");
+  }).catch((error) => {
+    console.error("Error saving score:", error);
+  });
+}
+
+function gameOver() {
+  if (isGameOver) {
+    console.log("Game over already triggered, ignoring");
+    return;
+  }
+  isGameOver = true;
+  console.log("Game over triggered");
+
+  clearInterval(gameInterval);
+  audio.pause();
+
+  document.removeEventListener("keydown", flapHandler);
+  document.removeEventListener("click", flap);
+
+  saveScore(username, score).finally(() => {
+    // Wait briefly to ensure leaderboard updates on screen before reset
+    setTimeout(() => {
+      console.log("Returning to main page");
+      startScreen.style.display = "block";
+      gameContainer.style.display = "none";
+      
+      // Reset game state
+      isGameOver = false;
+      isSavingScore = false;
+      gameStarted = false;
+      usernameInput.value = '';
+      scoreDisplay.innerText = '0';
+
+      // Optionally reload leaderboard to reflect new score
+      loadLeaderboard();
+    }, 1000);
+  });
+}
+
 
   function checkCollision() {
     if (isGameOver) return { collision: false };
@@ -119,34 +162,19 @@ document.addEventListener("DOMContentLoaded", () => {
     pipeTop.style.left = pipeX + "px";
     pipeBottom.style.left = pipeX + "px";
 
-    if (checkCollision().collision) {
+    if (collision) {
+      console.log(`Stopping game loop due to ${reason} collision`);
       clearInterval(gameInterval);
+      gameInterval = null;  // avoid duplicate clears
+      document.removeEventListener("keydown", flapHandler);
+      document.removeEventListener("click", flap);
       gameOver();
+      return; // stop further update logic
+}
+
     }
 
     scoreDisplay.innerText = score;
-  }
-
-  function gameOver() {
-    if (isGameOver) return;
-    isGameOver = true;
-
-    clearInterval(gameInterval);
-    audio.pause();
-    document.removeEventListener("keydown", flapHandler);
-    document.removeEventListener("click", flap);
-
-    saveScore(username, score);
-
-    setTimeout(() => {
-      startScreen.style.display = "block";
-      gameContainer.style.display = "none";
-      isGameOver = false;
-      isSavingScore = false;
-      gameStarted = false;
-      usernameInput.value = '';
-      scoreDisplay.innerText = '0';
-    }, 1000);
   }
 
   function flap() {
