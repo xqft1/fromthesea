@@ -278,3 +278,33 @@ h1 {
     max-width: 300px; /* Prevent overly wide buttons */
   }
 }
+
+
+
+
+
+/* Mobile-first adjustments for small screens */
+@media (max-width: 600px) {
+  /* Enlarge the bird */
+  #bird {
+    width: 25vw !important;      /* ~25% of viewport width */
+    height: 25vw !important;     /* maintain square */
+    max-width: 200px;            /* cap absolute size */
+    max-height: 200px;
+  }
+
+  /* Make score display more prominent */
+  #score {
+    font-size: 6vw !important;   /* ~6% of width */
+    top: 4vh !important;
+    left: 4vw !important;
+    text-shadow: 2px 2px 4px #000;
+  }
+
+  /* Optionally, enlarge leaderboard font too */
+  #leaderboard li {
+    font-size: 5vw !important;
+    margin: 8px 0 !important;
+  }
+}
+
