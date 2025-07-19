@@ -68,18 +68,24 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function saveScoreOnce(name, score) {
-    if (hasSavedScore) return;
-    hasSavedScore = true;
+  let hasSavedScore = false;  // Declare once at top-level
 
-    leaderboardRef.push({
-      name: name,
-      score: score,
-      timestamp: firebase.database.ServerValue.TIMESTAMP
-    }).then(() => {
-      console.log("Score saved once.");
-    }).catch(err => console.error("Error saving score:", err));
+function saveScoreOnce(name, score) {
+  if (hasSavedScore) {
+    console.log("Score already saved, skipping.");
+    return;
   }
+  hasSavedScore = true;
+
+  leaderboardRef.push({
+    name: name,
+    score: score,
+    timestamp: firebase.database.ServerValue.TIMESTAMP
+  }).then(() => {
+    console.log("Score saved once.");
+  }).catch(err => console.error("Error saving score:", err));
+}
+
 
   function checkCollision() {
     const birdRect = bird.getBoundingClientRect();
