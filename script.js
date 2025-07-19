@@ -38,7 +38,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let score = 0;
   let username = '';
   let gameInterval;
-  let gameStarted = false;
   let isGameOver = false;
   let hasSavedScore = false;
 
@@ -65,12 +64,10 @@ document.addEventListener("DOMContentLoaded", () => {
       leaderboardEl.innerHTML = leaderboard
         .map(entry => `<li>${entry.name}: ${entry.score}</li>`)
         .join('');
-    }, (error) => {
-      console.error("Error loading leaderboard:", error);
     });
   }
 
-  function saveScore(name, score) {
+  function saveScoreOnce(name, score) {
     if (hasSavedScore) return;
     hasSavedScore = true;
 
@@ -79,10 +76,8 @@ document.addEventListener("DOMContentLoaded", () => {
       score: score,
       timestamp: firebase.database.ServerValue.TIMESTAMP
     }).then(() => {
-      console.log("Score saved successfully");
-    }).catch((error) => {
-      console.error("Error saving score:", error);
-    });
+      console.log("Score saved once.");
+    }).catch(err => console.error("Error saving score:", err));
   }
 
   function checkCollision() {
@@ -94,6 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (birdRect.bottom > containerRect.bottom || birdRect.top < containerRect.top) {
       return true;
     }
+
     if (
       birdRect.right > topRect.left &&
       birdRect.left < topRect.right &&
@@ -101,6 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ) {
       return true;
     }
+
     return false;
   }
 
@@ -115,7 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (pipeX < -pipeWidth) {
       pipeX = gameWidth;
-      let topHeight = Math.floor(Math.random() * (gameHeight * 0.4)) + 50;
+      const topHeight = Math.floor(Math.random() * (gameHeight * 0.4)) + 50;
       pipeTop.style.height = topHeight + "px";
       pipeBottom.style.height = (gameHeight - topHeight - pipeGap) + "px";
       score++;
@@ -136,16 +133,17 @@ document.addEventListener("DOMContentLoaded", () => {
     isGameOver = true;
 
     clearInterval(gameInterval);
+    document.removeEventListener("keydown", flapHandler);
+    document.removeEventListener("click", flap);
     audio.pause();
-    saveScore(username, score);
+
+    saveScoreOnce(username, score);
 
     setTimeout(() => {
       startScreen.style.display = "block";
       gameContainer.style.display = "none";
       usernameInput.value = '';
       scoreDisplay.innerText = '0';
-      isGameOver = false;
-      hasSavedScore = false;
     }, 1000);
   }
 
@@ -161,7 +159,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function startGame() {
     const input = usernameInput.value.trim();
-    if (input === "") {
+    if (!input) {
       alert("Please enter your name!");
       return;
     }
@@ -178,16 +176,14 @@ document.addEventListener("DOMContentLoaded", () => {
     gameContainer.style.display = "block";
 
     setupStyles();
-
     document.addEventListener("keydown", flapHandler);
     document.addEventListener("click", flap);
-    audio.play().catch(e => console.log("Audio play blocked"));
+    audio.play().catch(() => console.warn("Audio blocked"));
 
     gameInterval = setInterval(updateGame, 20);
   }
 
   startButton.addEventListener("click", startGame);
-
   setupStyles();
   loadLeaderboard();
 });
