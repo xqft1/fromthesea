@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let isGameOver = false, hasSavedScore = false;
   let username = "", gameInterval;
 
-  const audio = new Audio("https://soundimage.org/wp-content/uploads/2014/02/Blazing-Stars.mp3");
+  const audio = new Audio("https://soundimage.org/wp-content/uploads/2016/10/Arcade-Fantasy.mp3");
   audio.loop = true;
   audio.volume = 0.5;
 
