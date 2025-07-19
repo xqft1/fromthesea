@@ -145,18 +145,35 @@ h1 {
   z-index: 2;
 }
 
-/* Obstacle - Blue ice shard block */
+/* Obstacle - 8-bit style ice shard */
 .obstacle {
   position: absolute;
   width: 8vw;
-  background: repeating-linear-gradient(
-    135deg,
-    #00ccff,
-    #00ccff 2px,
-    #0099cc 2px,
-    #0099cc 4px
-  );
-  border: 2px solid #006699;
+  background: 
+    /* Base icy fill with pixelated gradient */
+    linear-gradient(
+      135deg,
+      #00ccff 20%, /* Light blue for icy shine */
+      #0099cc 40%, /* Mid blue for depth */
+      #00ccff 60%, /* Light blue again for faceted look */
+      #0099cc 80% /* Mid blue */
+    );
+  border: 2px solid #006699; /* Dark blue border for contrast */
+  /* Pixelated effect for 8-bit style */
+  image-rendering: pixelated;
+  /* Add subtle noise-like pattern for icy texture */
+  background-image: 
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 4px,
+      rgba(0, 153, 204, 0.2) 4px, /* Slight #0099cc tint */
+      rgba(0, 153, 204, 0.2) 6px
+    );
+  /* Optional: Add a slight shine effect */
+  box-shadow: 
+    inset 2px 2px 4px rgba(0, 204, 255, 0.3), /* Inner glow for icy look */
+    0 0 6px rgba(0, 204, 255, 0.5); /* Outer subtle glow */
   z-index: 2;
 }
 
