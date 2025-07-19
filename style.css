@@ -167,56 +167,8 @@ h1 {
     inset 0 0 6px rgba(0, 204, 255, 0.5), /* Inner light blue glow */
     0 0 8px rgba(255, 255, 255, 0.6); /* Outer white shine */
   z-index: 2;
-  /* Ensure sparkle animation is applied */
-  position: relative;
-  overflow: hidden;
 }
 
-/* Sparkle effect using pseudo-element */
-.obstacle::after {
-  content: "";
-  position: absolute;
-  width: 6px;
-  height: 6px;
-  background: radial-gradient(
-    circle,
-    rgba(255, 255, 255, 0.9) 10%, /* Bright white center */
-    transparent 70% /* Fade out */
-  );
-  top: 20%;
-  left: 80%;
-  opacity: 0;
-  animation: sparkle 2s ease-in-out infinite;
-  pointer-events: none;
-}
-
-/* Sparkle animation */
-@keyframes sparkle {
-  0% {
-    opacity: 0;
-    transform: translate(0, 0) scale(0.5);
-  }
-  20% {
-    opacity: 1;
-    transform: translate(-10px, -5px) scale(1.2);
-  }
-  40% {
-    opacity: 0.8;
-    transform: translate(-15px, 5px) scale(1.0);
-  }
-  60% {
-    opacity: 1;
-    transform: translate(5px, -10px) scale(1.3);
-  }
-  80% {
-    opacity: 0.6;
-    transform: translate(10px, 5px) scale(0.8);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(0, 0) scale(0.5);
-  }
-}
 
 #pipe-top {
   top: 0;
