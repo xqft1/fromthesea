@@ -177,21 +177,38 @@ document.addEventListener("DOMContentLoaded", () => {
     gameInterval = setInterval(updateGame, 20);
   });
 
-  function loadLeaderboard() {
-    leaderboardRef
-      .orderByChild("score")
-      .limitToLast(5)
-      .once("value", snapshot => {
-        const scores = [];
-        snapshot.forEach(child => {
-          scores.push(child.val());
-        });
+function loadLeaderboard() {
+  leaderboardRef.orderByChild("score").once("value", snapshot => {
+    const allScores = [];
+    snapshot.forEach(child => {
+      const data = child.val();
+      allScores.push(data);
+    });
 
-        scores.sort((a, b) => b.score - a.score);
+    // Create a map of highest scores per name
+    const highestScores = {};
+    allScores.forEach(entry => {
+      if (
+        !highestScores[entry.name] || 
+        entry.score > highestScores[entry.name].score
+      ) {
+        highestScores[entry.name] = entry;
+      }
+    });
 
-        leaderboardList.innerHTML = scores.map(score => `<li>${score.name}: ${score.score}</li>`).join("");
-      });
-  }
+    // Convert to array and sort descending
+    const sortedScores = Object.values(highestScores)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5);  // top 5
 
-  loadLeaderboard();
-});
+    const leaderboardList = document.getElementById("leaderboard");
+    leaderboardList.innerHTML = ""; // clear existing entries
+
+    sortedScores.forEach(entry => {
+      const li = document.createElement("li");
+      li.textContent = `${entry.name}: ${entry.score}`;
+      leaderboardList.appendChild(li);
+    });
+  });
+}
+
