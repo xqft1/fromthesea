@@ -102,24 +102,28 @@ function gameOver() {
   document.removeEventListener("click", flap);
 
   saveScore(username, score).finally(() => {
-    // Wait briefly to ensure leaderboard updates on screen before reset
     setTimeout(() => {
       console.log("Returning to main page");
       startScreen.style.display = "block";
       gameContainer.style.display = "none";
       
-      // Reset game state
+      // Reset game state but DO NOT reset isSavingScore here
       isGameOver = false;
-      isSavingScore = false;
+      // isSavingScore = false;  <-- remove this line to block multiple saves
       gameStarted = false;
       usernameInput.value = '';
       scoreDisplay.innerText = '0';
 
-      // Optionally reload leaderboard to reflect new score
       loadLeaderboard();
+
+      // Optionally disable start button to prevent restarting and scoring again
+      startButton.disabled = true;
+      usernameInput.disabled = true;
+
     }, 1000);
   });
 }
+
 
 
   function checkCollision() {
