@@ -145,29 +145,27 @@ h1 {
   z-index: 2;
 }
 
-/* Obstacle - White snow shard with thick light blue curved edges and sparkle */
+/* Obstacle */
 .obstacle {
   position: absolute;
   width: 8vw;
-  background: 
-    /* White snowy fill with subtle gradient for depth */
-    linear-gradient(
-      135deg,
-      #ffffff 20%, /* Pure white for snow */
-      #e6f7ff 40%, /* Very light blue tint for depth */
-      #ffffff 60%, /* White again */
-      #e6f7ff 80% /* Light blue tint */
-    );
-  border: 4px solid #00ccff; /* Thick light blue border */
-  border-radius: 8px; /* Slightly curved edges */
-  /* Pixelated effect for 8-bit style */
+  background: linear-gradient(
+    135deg,
+    #ffffff 20%,
+    #e6f7ff 40%,
+    #ffffff 60%,
+    #e6f7ff 80%
+  );
+  border: 9px solid #00ccff; /* default: all borders */
+  border-radius: 8px;
   image-rendering: pixelated;
-  /* Shiny effect with inner and outer glow */
   box-shadow: 
-    inset 0 0 6px rgba(0, 204, 255, 0.5), /* Inner light blue glow */
-    0 0 8px rgba(255, 255, 255, 0.6); /* Outer white shine */
+    inset 0 0 16px rgba(0, 204, 255, 0.5),
+    0 0 8px rgba(255, 255, 255, 0.6);
   z-index: 2;
+  transition: border-width 0.2s;
 }
+
 
 
 #pipe-top {
