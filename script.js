@@ -1,3 +1,32 @@
+ function gameOver() {
+  if (isGameOver) {
+    console.log("Game over already triggered, ignoring");
+    return;
+  }
+
+  isGameOver = true; // Move this to the very top
+  console.log("Game over triggered");
+
+  clearInterval(gameInterval);
+  audio.pause();
+  document.removeEventListener("keydown", flapHandler);
+  document.removeEventListener("click", flap);
+
+  saveScore(username, score);
+
+  setTimeout(() => {
+    console.log("Returning to main page");
+    startScreen.style.display = "block";
+    gameContainer.style.display = "none";
+    isSavingScore = false;
+    gameStarted = false;
+    usernameInput.value = '';
+    scoreDisplay.innerText = '0';
+  }, 1000);
+}
+
+
+
 // Wait for the DOM to be fully loaded
 document.addEventListener("DOMContentLoaded", () => {
   console.log("DOM loaded, attaching startButton listener");
@@ -56,22 +85,24 @@ document.addEventListener("DOMContentLoaded", () => {
   bird.style.left = gameWidth * 0.15 + "px";
   bird.style.top = birdY + "px";
 
-  function loadLeaderboard() {
-    console.log("Loading leaderboard...");
-    leaderboardRef.orderByChild("score").limitToLast(5).on("value", (snapshot) => {
-      const leaderboard = [];
-      snapshot.forEach((child) => {
-        leaderboard.push(child.val());
-      });
-      leaderboard.sort((a, b) => b.score - a.score);
-      leaderboardEl.innerHTML = leaderboard
-        .map(entry => `<li>${entry.name}: ${entry.score}</li>`)
-        .join('');
-      console.log("Leaderboard updated:", leaderboard);
-    }, (error) => {
-      console.error("Error loading leaderboard:", error);
+ function loadLeaderboard() {
+  console.log("Loading leaderboard...");
+  leaderboardRef.off(); // clear any previous listener to avoid duplicates
+  leaderboardRef.orderByChild("score").limitToLast(5).on("value", (snapshot) => {
+    const leaderboard = [];
+    snapshot.forEach((child) => {
+      leaderboard.push(child.val());
     });
-  }
+    leaderboard.sort((a, b) => b.score - a.score);
+    leaderboardEl.innerHTML = leaderboard
+      .map(entry => `<li>${entry.name}: ${entry.score}</li>`)
+      .join('');
+    console.log("Leaderboard updated:", leaderboard);
+  }, (error) => {
+    console.error("Error loading leaderboard:", error);
+  });
+}
+
 
   function saveScore(name, score) {
     if (isSavingScore) {
@@ -153,33 +184,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     scoreDisplay.innerText = score;
-  }
-
-  function gameOver() {
-    if (isGameOver) {
-      console.log("Game over already triggered, ignoring");
-      return;
-    }
-    isGameOver = true;
-    console.log("Game over triggered");
-
-    clearInterval(gameInterval);
-    audio.pause();
-    document.removeEventListener("keydown", flapHandler);
-    document.removeEventListener("click", flap);
-
-    saveScore(username, score);
-
-    setTimeout(() => {
-      console.log("Returning to main page");
-      startScreen.style.display = "block";
-      gameContainer.style.display = "none";
-      isGameOver = false;
-      isSavingScore = false;
-      gameStarted = false;
-      usernameInput.value = '';
-      scoreDisplay.innerText = '0';
-    }, 1000);
   }
 
   function flap() {
