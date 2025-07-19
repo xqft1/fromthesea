@@ -27,7 +27,6 @@ h1 {
   margin: 0; /* Removes default margins */
 }
 
-
 /* Game container with starfield */
 #game-container {
   position: relative;
@@ -67,7 +66,7 @@ h1 {
     calc(27% + 95px) calc(68% + 140px),
     calc(58% + 110px) calc(32% + 70px),
     calc(22% + 130px) calc(82% + 160px);
-  animation: starDrift 70s linear infinite;
+  animation: starDrift 30s linear infinite; /* Adjusted for faster movement */
   opacity: 0.9;
   filter: brightness(2.2); /* Slightly brighter */
   pointer-events: none;
@@ -83,28 +82,34 @@ h1 {
   height: 300%;
   z-index: 0;
   background-image:
-    radial-gradient(white 2px, transparent 2px),
-    radial-gradient(#eef 1.2px, transparent 1.2px),
-    radial-gradient(#aaf 1.5px, transparent 1.5px),
-    radial-gradient(#ddf 1.8px, transparent 1.8px),
-    radial-gradient(#88f 2.2px, transparent 2.2px),
-    radial-gradient(#bbe 1.3px, transparent 1.3px);
+    radial-gradient(white 1.8px, transparent 1.8px),
+    radial-gradient(#eef 1.5px, transparent 1.5px),
+    radial-gradient(#aaf 1.3px, transparent 1.3px),
+    radial-gradient(#ddf 2.0px, transparent 2.0px),
+    radial-gradient(#88f 1.7px, transparent 1.7px),
+    radial-gradient(#bbe 1.4px, transparent 1.4px),
+    radial-gradient(#fff 1.6px, transparent 1.6px), /* Added more gradients for randomness */
+    radial-gradient(#aaf 1.9px, transparent 1.9px);
   background-size: 
-    600px 500px,
-    350px 300px,
-    700px 600px,
-    400px 450px,
-    550px 650px,
-    300px 350px;
+    250px 300px, /* Smaller, varied sizes for denser, random stars */
+    400px 350px,
+    300px 400px,
+    500px 450px,
+    350px 500px,
+    600px 300px,
+    450px 400px,
+    200px 250px;
   background-position: 
-    calc(17% + 60px) calc(22% + 110px),
-    calc(43% + 140px) calc(11% + 65px),
-    calc(67% + 200px) calc(58% + 130px),
-    calc(31% + 85px) calc(73% + 150px),
-    calc(53% + 120px) calc(37% + 90px),
-    calc(19% + 75px) calc(87% + 170px);
-  animation: twinkle 2s ease-in-out infinite,
-             starDrift 100s linear infinite;
+    calc(15% + 50px) calc(25% + 100px), /* More varied positions */
+    calc(45% + 120px) calc(15% + 70px),
+    calc(65% + 180px) calc(55% + 110px),
+    calc(35% + 90px) calc(75% + 140px),
+    calc(55% + 130px) calc(35% + 80px),
+    calc(25% + 60px) calc(85% + 160px),
+    calc(20% + 70px) calc(30% + 90px),
+    calc(50% + 150px) calc(60% + 120px);
+  animation: twinkle 1.5s ease-in-out infinite, /* Faster twinkling */
+             starDrift 20s linear infinite; /* Faster leftward drift */
   opacity: 0.85;
   filter: brightness(3.0); /* Brighter for game-like effect */
   pointer-events: none;
@@ -112,29 +117,19 @@ h1 {
 
 @keyframes starDrift {
   0% {
-    transform: translateX(0) translateY(50px) rotate(0deg);
-  }
-  25% {
-    transform: translateX(-100px) translateY(30px) rotate(5deg);
-  }
-  50% {
-    transform: translateX(-150px) translateY(-20px) rotate(-5deg);
-  }
-  75% {
-    transform: translateX(-200px) translateY(40px) rotate(3deg);
+    transform: translateX(0) translateY(0); /* Simplified to focus on leftward motion */
   }
   100% {
-    transform: translateX(-250px) translateY(-50px) rotate(0deg);
+    transform: translateX(-100%) translateY(0); /* Move fully to the left */
   }
 }
 
 @keyframes twinkle {
-  0% { opacity: 0.5; filter: brightness(2.0); transform: scale(0.9); }
-  20% { opacity: 0.8; filter: brightness(3.2); transform: scale(1.1); }
-  40% { opacity: 1.0; filter: brightness(3.5); transform: scale(1.2); }
-  60% { opacity: 0.7; filter: brightness(2.8); transform: scale(1.0); }
-  80% { opacity: 0.9; filter: brightness(3.0); transform: scale(1.15); }
-  100% { opacity: 0.6; filter: brightness(2.5); transform: scale(0.95); }
+  0% { opacity: 0.4; filter: brightness(2.0); transform: scale(0.8); }
+  25% { opacity: 0.9; filter: brightness(3.5); transform: scale(1.2); }
+  50% { opacity: 0.6; filter: brightness(2.5); transform: scale(0.9); }
+  75% { opacity: 1.0; filter: brightness(4.0); transform: scale(1.3); }
+  100% { opacity: 0.4; filter: brightness(2.0); transform: scale(0.8); }
 }
 
 /* Flappy character - 8-bit purple octopus */
@@ -226,53 +221,52 @@ h1 {
   font-size: 14px;
 }
 
-
 /* Container for the button */
-    .buy-now-container {
-      position: fixed; /* Forces button to top of viewport */
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      
-      padding: 20px 0;
-      z-index: 1000; /* Ensures button is above other elements */
-      text-align: center;
-    }
+.buy-now-container {
+  position: fixed; /* Forces button to top of viewport */
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 20px 0;
+  z-index: 1000; /* Ensures button is above other elements */
+  text-align: center;
+}
 
-    /* Amazon-style Buy Now button */
-    .buy-now-button {
-      display: inline-block;
-      background-color: #FF9900; /* Amazon’s signature orange */
-      color: #FFFFFF; /* White text for contrast */
-      font-size: 12px; /* Large, readable font */
-      font-weight: bold;
-      text-transform: uppercase;
-      padding: 15px 40px; /* Generous padding for size */
-      border-radius: 8px; /* Rounded corners */
-      border: none; /* No border for clean look */
-      cursor: pointer;
-      text-decoration: none; /* For <a> tag */
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Subtle shadow for depth */
-      transition: background-color 0.3s, transform 0.2s; /* Smooth hover effects */
-    }
+/* Amazon-style Buy Now button */
+.buy-now-button {
+  display: inline-block;
+  background-color: #FF9900; /* Amazon’s signature orange */
+  color: #FFFFFF; /* White text for contrast */
+  font-size: 12px; /* Large, readable font */
+  font-weight: bold;
+  text-transform: uppercase;
+  padding: 15px 40px; /* Generous padding for size */
+  border-radius: 8px; /* Rounded corners */
+  border: none; /* No border for clean look */
+  cursor: pointer;
+  text-decoration: none; /* For <a> tag */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Subtle shadow for depth */
+  transition: background-color 0.3s, transform 0.2s; /* Smooth hover effects */
+}
 
-    /* Hover effect */
-    .buy-now-button:hover {
-      background-color: #F7CA00; /* Slightly lighter orange */
-      transform: scale(1.05); /* Slight zoom on hover */
-    }
+/* Hover effect */
+.buy-now-button:hover {
+  background-color: #F7CA00; /* Slightly lighter orange */
+  transform: scale(1.05); /* Slight zoom on hover */
+}
 
-    /* Active effect (when clicked) */
-    .buy-now-button:active {
-      background-color: #E68A00; /* Darker orange */
-      transform: scale(0.95); /* Slight shrink on click */
-    }
+/* Active effect (when clicked) */
+.buy-now-button:active {
+  background-color: #E68A00; /* Darker orange */
+  transform: scale(0.95); /* Slight shrink on click */
+}
 
-    /* Ensure button is mobile-friendly */
-    @media (max-width: 600px) {
-      .buy-now-button {
-        font-size: 18px; /* Slightly smaller for mobile */
-        padding: 12px 30px;
-        width: 90%; /* Full-width on mobile */
-        max-width: 300px; /* Prevent overly wide buttons */
-      }
+/* Ensure button is mobile-friendly */
+@media (max-width: 600px) {
+  .buy-now-button {
+    font-size: 18px; /* Slightly smaller for mobile */
+    padding: 12px 30px;
+    width: 90%; /* Full-width on mobile */
+    max-width: 300px; /* Prevent overly wide buttons */
+  }
+}
