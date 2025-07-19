@@ -13,6 +13,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const database = firebase.database();
   const leaderboardRef = database.ref("leaderboard");
 
+  const userId = firebase.auth().currentUser.uid;
+leaderboardRef.child(userId).set({
+  name: username,
+  score: score,
+  timestamp: firebase.database.ServerValue.TIMESTAMP,
+});
+
+
   const bird = document.getElementById("bird");
   const pipeTop = document.getElementById("pipe-top");
   const pipeBottom = document.getElementById("pipe-bottom");
