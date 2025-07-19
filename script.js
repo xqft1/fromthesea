@@ -171,21 +171,35 @@ document.addEventListener("DOMContentLoaded", () => {
     scoreDisplay.innerText = score;
   }
 
-  function gameOver() {
-    if (isGameOver) {
-      console.log("Game over already triggered, ignoring");
-      return;
-    }
-    isGameOver = true;
-    console.log("Game over triggered");
-    audio.pause();
-    saveScore(username, score);
-    alert(`Game Over, ${username}! Your Score: ${score}`);
-    setTimeout(() => {
-      console.log("Reloading page");
-      location.reload();
-    }, 1000);
+ function gameOver() {
+  if (isGameOver) {
+    console.log("Game over already triggered, ignoring");
+    return;
   }
+  isGameOver = true;
+  console.log("Game over triggered");
+
+  // Stop the music and game loop
+  audio.pause();
+  clearInterval(gameInterval);
+
+  // Detach input listeners to fully stop player interaction
+  document.removeEventListener("keydown", flapHandler);
+  document.removeEventListener("click", flap);
+
+  // Save score only once
+  if (!isSavingScore) {
+    saveScore(username, score);
+  }
+
+  // Delay the alert to make sure state is settled
+  setTimeout(() => {
+    alert(`Game Over, ${username}! Your Score: ${score}`);
+    console.log("Reloading page after game over alert");
+    location.reload();
+  }, 200); // slight delay prevents double-firing
+}
+
 
   function flap() {
     if (isGameOver) {
