@@ -70,21 +70,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let hasSavedScore = false;  // Declare once at top-level
 
-function saveScoreOnce(name, score) {
-  if (hasSavedScore) {
-    console.log("Score already saved, skipping.");
-    return;
-  }
-  hasSavedScore = true;
+unction saveScoreOnce(name, score) {
+    if (hasSavedScore) return;
+    hasSavedScore = true;
 
-  leaderboardRef.push({
-    name: name,
-    score: score,
-    timestamp: firebase.database.ServerValue.TIMESTAMP
-  }).then(() => {
-    console.log("Score saved once.");
-  }).catch(err => console.error("Error saving score:", err));
-}
+    leaderboardRef.push({
+      name: name,
+      score: score,
+      timestamp: firebase.database.ServerValue.TIMESTAMP
+    }).then(() => {
+      console.log("Score saved once.");
+    }).catch(err => console.error("Error saving score:", err));
+  }
 
 
   function checkCollision() {
