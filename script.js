@@ -134,6 +134,21 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!isGameOver) velocity = jump;
   }
 
+function adjustObstacleBorder(obstacle) {
+  const rect = obstacle.getBoundingClientRect();
+
+  const isTouchingTop = rect.top <= 0;
+  const isTouchingBottom = rect.bottom >= window.innerHeight;
+
+  if (isTouchingTop) {
+    obstacle.style.borderTopWidth = '0px';
+  }
+
+  if (isTouchingBottom) {
+    obstacle.style.borderBottomWidth = '0px';
+  }
+}
+  
   function loadLeaderboard() {
     leaderboardRef.orderByChild("score").once("value", snapshot => {
       const entries = [];
